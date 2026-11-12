@@ -77,8 +77,8 @@ public class PostSchedulerService {
                 postRepository.save(post);
 
                 notificationRepository.save(new Notification(
-                        "🚀 Post Published Automatically",
-                        "Scheduled post on " + post.getPlatform() + " (\"" + truncate(post.getTitle(), 35) + "\") is now live!",
+                        "Post Auto-Published",
+                        "Scheduled post on " + post.getPlatform() + " (\"" + truncate(post.getTitle(), 35) + "\") is now live.",
                         "trend"
                 ));
             }

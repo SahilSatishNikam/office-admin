@@ -19,10 +19,5 @@ public class LoginController {
         }
         return "login";
     }
-
-    @GetMapping("/")
-    public String rootRedirect() {
-        return "redirect:/dashboard";
-    }
 }
 

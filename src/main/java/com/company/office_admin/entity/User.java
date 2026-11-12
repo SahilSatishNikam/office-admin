@@ -30,7 +30,7 @@ public class User {
     private String avatarInitials;
 
     @Column(name = "phone_number")
-    private String phoneNumber = "+1 555-0199";
+    private String phoneNumber;
 
     @Column(name = "email_notifications_enabled")
     private Boolean emailNotificationsEnabled = true;

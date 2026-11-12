@@ -3,6 +3,7 @@ package com.company.office_admin.controller;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -34,24 +35,40 @@ public class GlobalModelAttributes {
     public void addGlobalAttributes(Model model, Authentication authentication) {
         String userName = "Admin";
         String userLogin = "admin";
-        String userRole = "Administrator";
+        String userRole = "Master Admin";
+        String userRoleAuthority = "ROLE_ADMIN";
         String userEmail = "admin@company.com";
         String userInitials = "AD";
+        User currentUser = null;
 
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
-            User currentUser = userRepository.findByUsername(authentication.getName()).orElse(null);
+            currentUser = userRepository.findByUsername(authentication.getName()).orElse(null);
             if (currentUser != null) {
                 userLogin = currentUser.getUsername();
                 userName = currentUser.getFullName();
-                userRole = currentUser.getRole();
                 userEmail = currentUser.getEmail();
-                userInitials = currentUser.getAvatarInitials();
+                userInitials = (currentUser.getAvatarInitials() != null && !currentUser.getAvatarInitials().isBlank())
+                        ? currentUser.getAvatarInitials() : "AD";
             }
+
+            if (!authentication.getAuthorities().isEmpty()) {
+                GrantedAuthority ga = authentication.getAuthorities().iterator().next();
+                userRoleAuthority = ga.getAuthority();
+            }
+
+            userRole = switch (userRoleAuthority) {
+                case "ROLE_ADMIN" -> "Master Admin";
+                case "ROLE_DESIGNER" -> "Creative Designer";
+                case "ROLE_CREATOR" -> "Content Creator";
+                default -> (currentUser != null && currentUser.getRole() != null) ? currentUser.getRole() : "Team Member";
+            };
         }
 
+        model.addAttribute("currentUser", currentUser);
         model.addAttribute("userLogin", userLogin);
         model.addAttribute("userName", userName);
         model.addAttribute("userRole", userRole);
+        model.addAttribute("userRoleAuthority", userRoleAuthority);
         model.addAttribute("userEmail", userEmail);
         model.addAttribute("userInitials", userInitials);
 
@@ -67,4 +84,3 @@ public class GlobalModelAttributes {
         model.addAttribute("folders", folderService.getAllFolders());
     }
 }
-

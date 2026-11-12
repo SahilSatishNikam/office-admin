@@ -24,6 +24,7 @@ public class SocialAccountController {
         model.addAttribute("pageTitle", "Social Accounts");
         model.addAttribute("activeMenu", "accounts");
         model.addAttribute("allAccounts", dashboardService.getAllAccounts());
+        model.addAttribute("stats", dashboardService.getDashboardStats());
         return "accounts";
     }
 

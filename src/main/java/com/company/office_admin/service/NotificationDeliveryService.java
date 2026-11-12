@@ -37,7 +37,7 @@ public class NotificationDeliveryService {
     @Value("${spring.mail.username:}")
     private String mailUsername;
 
-    @Value("${app.notifications.email.from:notifications@codemetric.io}")
+    @Value("${app.notifications.email.from:notifications@company.com}")
     private String mailFrom;
 
     @Value("${app.notifications.email.default-recipient:admin@company.com}")
@@ -46,7 +46,7 @@ public class NotificationDeliveryService {
     @Value("${app.notifications.sms.enabled:true}")
     private boolean smsEnabled;
 
-    @Value("${app.notifications.sms.default-phone:+917385192062}")
+    @Value("${app.notifications.sms.default-phone:}")
     private String defaultPhone;
 
     @Value("${app.notifications.sms.fast2sms-api-key:}")

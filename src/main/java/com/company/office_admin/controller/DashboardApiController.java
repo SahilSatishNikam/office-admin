@@ -62,7 +62,7 @@ public class DashboardApiController {
         DashboardStatsDto updatedStats = dashboardService.getDashboardStats();
         return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Post created and saved to MySQL successfully!",
+                "message", "Post created and saved successfully!",
                 "createdCount", saved.size(),
                 "posts", saved,
                 "stats", updatedStats

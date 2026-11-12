@@ -233,7 +233,7 @@ public class FolderService {
             return existing.get();
         }
         DashboardFolder folder = new DashboardFolder(
-                "🎨 Designer Vault",
+                "Designer Vault",
                 "Graphics, banner mockups, Figma assets, and brand design kits",
                 "#ec4899",
                 "palette"
@@ -248,7 +248,7 @@ public class FolderService {
             return existing.get();
         }
         DashboardFolder folder = new DashboardFolder(
-                "✍️ Creator Studio",
+                "Creator Studio",
                 "Video hooks, script outlines, caption variations, and viral copy drafts",
                 "#f97316",
                 "creator"

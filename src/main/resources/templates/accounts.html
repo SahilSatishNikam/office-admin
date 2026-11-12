@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -70,14 +70,13 @@
                 </div>
 
                 <!-- Page Header -->
-                <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;">
+                <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
                     <div>
-                        <h1 class="welcome-title">Connected Social Accounts</h1>
-                        <p class="welcome-subtitle">Manage, connect, and sync your brand's social channels.</p>
+                        <h1 class="welcome-title">Connected Accounts</h1>
                     </div>
                     <button type="button" class="btn btn-primary" id="openConnectAccountBtn" style="display: inline-flex; align-items: center; gap: 8px;">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Connect New Account</span>
+                        <span>Connect Account</span>
                     </button>
                 </div>
 
@@ -134,22 +133,21 @@
                     <div class="card-header" style="margin-bottom: 20px;">
                         <div>
                             <h3 class="card-title">All Channels</h3>
-                            <p class="card-desc">Active social channels linked to your workspace</p>
                         </div>
                     </div>
 
                     <!-- Empty State -->
-                    <div th:if="${allAccounts == null or allAccounts.isEmpty()}" style="padding: 48px 24px; text-align: center; border: 2px dashed var(--border-color); border-radius: var(--radius-lg); margin-top: 12px;">
-                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; color: var(--text-muted); opacity: 0.7;">
+                    <div th:if="${allAccounts == null or allAccounts.isEmpty()}" style="padding: 36px 20px; text-align: center; border: 2px dashed var(--border-color); border-radius: var(--radius-lg); margin-top: 12px;">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 10px; color: var(--text-muted); opacity: 0.7;">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle>
                             <line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line>
                         </svg>
-                        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">No Social Accounts Connected</h4>
-                        <p style="color: var(--text-muted); font-size: 14px; max-width: 440px; margin: 0 auto 20px auto;">
-                            Connect your real social media profiles (Instagram, LinkedIn, X, YouTube, etc.) to start managing posts and tracking live performance.
+                        <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">No Social Accounts Connected</h4>
+                        <p style="color: var(--text-muted); font-size: 13px; max-width: 380px; margin: 0 auto 16px auto;">
+                            Link your social profiles to track live analytics.
                         </p>
                         <button type="button" class="btn btn-primary" onclick="document.getElementById('connectAccountModal').classList.add('show');">
-                            + Connect First Account
+                            Connect Account
                         </button>
                     </div>
 

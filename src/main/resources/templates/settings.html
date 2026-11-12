@@ -43,9 +43,8 @@
             <main class="dashboard-content dashboard-main">
 
                 <!-- Page Header -->
-                <div class="dashboard-header" style="margin-bottom: 28px;">
-                    <h1 class="welcome-title">Account &amp; User Authority Settings</h1>
-                    <p class="welcome-subtitle">Manage your login username, password, administrator profile, and workspace users.</p>
+                <div class="dashboard-header" style="margin-bottom: 24px;">
+                    <h1 class="welcome-title">Settings</h1>
                 </div>
 
                 <!-- Alerts Row -->
@@ -92,8 +91,7 @@
                     <div class="dashboard-card" style="padding: 28px;">
                         <div class="card-header" style="margin-bottom: 20px;">
                             <div>
-                                <h3 class="card-title">My Profile &amp; Login Authority</h3>
-                                <p class="card-desc">Change your sign-in username and personal profile credentials</p>
+                                <h3 class="card-title">Profile</h3>
                             </div>
                         </div>
 
@@ -107,20 +105,20 @@
                                     <span style="font-size: 11px; color: var(--primary); font-weight: 600;">Used to log into dashboard</span>
                                 </label>
                                 <div style="position: relative;">
-                                    <input type="text" class="form-input" name="username" th:value="${user != null ? user.username : userLogin}" required minlength="3" placeholder="e.g. sahil or admin">
+                                    <input type="text" class="form-input" name="username" th:value="${user != null ? user.username : userLogin}" required minlength="3" placeholder="e.g. alex or admin">
                                 </div>
                             </div>
 
                             <!-- Full Display Name -->
                             <div class="form-group" style="margin-bottom: 16px;">
                                 <label class="form-label">Full Name</label>
-                                <input type="text" class="form-input" name="fullName" th:value="${user != null ? user.fullName : userName}" required placeholder="e.g. Sahil Patel">
+                                <input type="text" class="form-input" name="fullName" th:value="${user != null ? user.fullName : userName}" required placeholder="e.g. Alex Morgan">
                             </div>
 
                             <!-- Email Address -->
                             <div class="form-group" style="margin-bottom: 16px;">
                                 <label class="form-label">Email Address</label>
-                                <input type="email" class="form-input" name="email" th:value="${user != null ? user.email : userEmail}" required placeholder="e.g. sahil@company.com">
+                                <input type="email" class="form-input" name="email" th:value="${user != null ? user.email : userEmail}" required placeholder="e.g. alex@company.com">
                             </div>
 
                             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 24px;">
@@ -138,7 +136,7 @@
                             </div>
 
                             <button type="submit" class="btn btn-primary" style="width: 100%;">
-                                <span>Save Profile &amp; Username</span>
+                                <span>Save Profile</span>
                             </button>
                         </form>
                     </div>
@@ -148,6 +146,8 @@
                         <div class="card-header" style="margin-bottom: 20px;">
                             <div>
                                 <h3 class="card-title">Change Password</h3>
+                            </div>
+                        </div>
                                 <p class="card-desc">Update your personal password stored securely in MySQL with BCrypt</p>
                             </div>
                         </div>
@@ -180,8 +180,7 @@
                     <div class="dashboard-card" style="padding: 28px;">
                         <div class="card-header" style="margin-bottom: 20px;">
                             <div>
-                                <h3 class="card-title">Appearance &amp; Theme</h3>
-                                <p class="card-desc">Choose how CodeMetric appears on your device</p>
+                                <h3 class="card-title">Theme</h3>
                             </div>
                         </div>
 
@@ -225,8 +224,7 @@
                     <div class="dashboard-card" style="padding: 28px;">
                         <div class="card-header" style="margin-bottom: 20px;">
                             <div>
-                                <h3 class="card-title">Reminders &amp; Alerts (Email &amp; SMS)</h3>
-                                <p class="card-desc">Receive notifications when posts are scheduled and before publishing</p>
+                                <h3 class="card-title">Notifications</h3>
                             </div>
                         </div>
 
@@ -246,7 +244,7 @@
                             <div class="form-group" style="margin-bottom: 14px;">
                                 <label class="form-label">Mobile Phone (for SMS / WhatsApp MSG)</label>
                                 <input type="tel" class="form-input" name="phoneNumber" id="alertPhoneInput"
-                                       th:value="${user != null ? user.phoneNumber : '+1 555-0199'}" placeholder="+1 555-0199 or +91 9876543210">
+                                       th:value="${user != null ? user.phoneNumber : ''}" placeholder="+1 234 567 8900 or +91 9876543210">
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
@@ -375,7 +373,7 @@
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
                                 <div class="form-group">
                                     <label class="form-label">Username</label>
-                                    <input type="text" class="form-input" name="newUsername" required minlength="3" placeholder="e.g. sahil">
+                                    <input type="text" class="form-input" name="newUsername" required minlength="3" placeholder="e.g. alex">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Password</label>
@@ -383,11 +381,11 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Full Name</label>
-                                    <input type="text" class="form-input" name="newFullName" required placeholder="e.g. Sahil Patel">
+                                    <input type="text" class="form-input" name="newFullName" required placeholder="e.g. Alex Morgan">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Email</label>
-                                    <input type="email" class="form-input" name="newEmail" required placeholder="e.g. sahil@company.com">
+                                    <input type="email" class="form-input" name="newEmail" required placeholder="e.g. alex@company.com">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Role</label>
