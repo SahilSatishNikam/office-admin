@@ -85,7 +85,7 @@
                 </div>
 
                 <!-- Two-Column Grid: Profile & Password -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 28px; margin-bottom: 32px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 28px; margin-bottom: 32px;">
                     
                     <!-- Card 1: Username & Profile Authority -->
                     <div class="dashboard-card" style="padding: 28px;">
@@ -146,9 +146,6 @@
                         <div class="card-header" style="margin-bottom: 20px;">
                             <div>
                                 <h3 class="card-title">Change Password</h3>
-                            </div>
-                        </div>
-                                <p class="card-desc">Update your personal password stored securely in MySQL with BCrypt</p>
                             </div>
                         </div>
 
@@ -405,7 +402,7 @@
                     </div>
 
                     <!-- Users Table -->
-                    <div style="overflow-x: auto;">
+                    <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
                             <thead>
                                 <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
