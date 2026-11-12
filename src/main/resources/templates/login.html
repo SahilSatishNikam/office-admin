@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Theme & Color Scheme (Supports Dark / Light Mode) -->
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function() {
+            try {
+                var s = localStorage.getItem('theme') || localStorage.getItem('color-scheme');
+                if (s === 'dark' || (!s && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'dark';
+                } else if (s === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'light';
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <title>Sign In &bull; CodeMetric</title>
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --bg-page: #f8fafc;
+            --danger: #ef4444;
+            --success: #10b981;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        :root[data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border-color: #374151;
+            --bg-page: #0b0f19;
+        }
+
+        :root[data-theme="dark"] .login-right {
+            background-color: #111827;
+        }
+
+        :root[data-theme="dark"] .form-input {
+            background-color: #1f2937;
+            color: #f9fafb;
+            border-color: #374151;
+        }
+
+        :root[data-theme="dark"] .quick-account-btn {
+            background-color: #1f2937;
+            border-color: #374151;
+        }
+
+        :root[data-theme="dark"] .quick-account-btn:hover {
+            background-color: #374151;
+            border-color: var(--primary);
+        }
+
+        :root[data-theme="dark"] .demo-banner {
+            background-color: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Mesh Background Blobs */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.45;
+            animation: floatBlob 16s ease-in-out infinite alternate;
+        }
+
+        .blob-1 {
+            width: 520px;
+            height: 520px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            top: -100px;
+            left: -100px;
+            animation-duration: 18s;
+        }
+
+        .blob-2 {
+            width: 480px;
+            height: 480px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            bottom: -80px;
+            right: -80px;
+            animation-duration: 22s;
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            width: 340px;
+            height: 340px;
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            top: 40%;
+            left: 60%;
+            opacity: 0.25;
+            animation-duration: 25s;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatBlob {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(60px, 40px) scale(1.08) rotate(10deg);
+            }
+
+            100% {
+                transform: translate(-40px, 80px) scale(0.95) rotate(-8deg);
+            }
+        }
+
+        /* Subtle Geometric Grid Pattern */
+        .grid-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(rgba(99, 102, 241, 0.12) 1.2px, transparent 1.2px);
+            background-size: 30px 30px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Main Login Card */
+        .login-card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 460px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08),
+                0 0 0 1px rgba(226, 232, 240, 0.8),
+                0 30px 60px -20px rgba(79, 70, 229, 0.15);
+            border-radius: 24px;
+            padding: 40px 38px;
+            animation: cardEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Brand Header */
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand-logo-container {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 16px auto;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 12px 24px -6px rgba(79, 70, 229, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .brand-logo-container:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .brand-logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .brand-name-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .brand-name {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+
+        .brand-tagline {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Error / Logout Alerts */
+        .alert-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 22px;
+            animation: alertShake 0.4s ease-in-out;
+        }
+
+        @keyframes alertShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-6px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(6px);
+            }
+        }
+
+        .alert-danger {
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-box svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+
+        .input-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 48px;
+            padding: 0 16px 0 44px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: #ffffff;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+            background: #ffffff;
+        }
+
+        .form-input:focus+.input-icon,
+        .input-wrapper:focus-within .input-icon {
+            color: var(--primary);
+        }
+
+        /* Password Toggle Button */
+        .toggle-password-btn {
+            position: absolute;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .toggle-password-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        .toggle-password-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Remember & Helper Row */
+        .form-options-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            font-size: 0.84rem;
+        }
+
+        .remember-checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-secondary);
+        }
+
+        .remember-checkbox-group input {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Submit Button with Shimmer & Scale Animation */
+        .btn-submit {
+            width: 100%;
+            height: 48px;
+            background: var(--primary-gradient);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 40%;
+            height: 200%;
+            background: linear-gradient(to right,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.25) 50%,
+                    rgba(255, 255, 255, 0) 100%);
+            transform: rotate(25deg);
+            transition: all 0.75s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(79, 70, 229, 0.45);
+        }
+
+        .btn-submit:hover::after {
+            left: 130%;
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-submit svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-submit:hover svg {
+            transform: translateX(4px);
+        }
+
+        /* Quick Credentials Pill */
+        .credentials-pill {
+            margin-top: 24px;
+            background: rgba(241, 245, 249, 0.9);
+            border: 1px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .credentials-pill:hover {
+            background: rgba(238, 242, 255, 0.9);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .credentials-pill strong {
+            color: var(--text-primary);
+        }
+
+        .credentials-pill:hover strong {
+            color: var(--primary);
+        }
+
+        /* Footer Note */
+        .login-footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 22px;
+                border-radius: 20px;
+            }
+
+            .brand-name {
+                font-size: 1.55rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Ambient Glowing Blobs -->
+    <div class="ambient-glow">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Geometric Dot Grid Pattern -->
+    <div class="grid-pattern"></div>
+
+    <!-- Main Login Card Container -->
+    <div class="login-card">
+
+        <!-- Brand Header with Logo & CodeMetric Name -->
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <img th:src="@{/images/logo.png}" alt="CodeMetric Logo">
+            </div>
+            <div class="brand-name-group">
+                <h1 class="brand-name">CodeMetric</h1>
+                <span class="brand-tag">Social Media DB</span>
+            </div>
+            <p class="brand-tagline">Enterprise Social Media & Performance Suite</p>
+        </div>
+
+        <!-- Error Notification -->
+        <div th:if="${param.error}" class="alert-box alert-danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Invalid username or password. Please try again.</span>
+        </div>
+
+        <!-- Logout Notification -->
+        <div th:if="${param.logout}" class="alert-box alert-success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>You have been safely signed out.</span>
+        </div>
+
+        <!-- Login Form -->
+        <form th:action="@{/login}" method="post" id="loginForm">
+            <!-- Username Field -->
+            <div class="form-group">
+                <label for="usernameInput" class="form-label">Username</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </span>
+                    <input type="text" id="usernameInput" name="username" class="form-input" placeholder="e.g. admin"
+                        required autofocus autocomplete="username">
+                </div>
+            </div>
+
+            <!-- Password Field with Show/Hide Toggle -->
+            <div class="form-group">
+                <label for="passwordInput" class="form-label">Password</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </span>
+                    <input type="password" id="passwordInput" name="password" class="form-input"
+                        style="padding-right: 44px;" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                        required autocomplete="current-password">
+                    <button type="button" class="toggle-password-btn" id="togglePasswordBtn"
+                        title="Toggle password visibility" aria-label="Toggle password visibility">
+                        <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Options Row -->
+            <div class="form-options-row">
+                <label class="remember-checkbox-group">
+                    <input type="checkbox" name="remember-me" id="rememberMe">
+                    <span>Keep me signed in</span>
+                </label>
+                <span style="color: var(--text-muted); font-size: 0.82rem;">Default Role: Admin</span>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <span>Sign In to Dashboard</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+        </form>
+
+        <!-- Quick Credentials Helper Box (Click to Auto-fill) -->
+        <div class="credentials-pill" id="autoFillCredentials" title="Click to autofill default credentials">
+            <span>Click to autofill: <strong>admin</strong> / <strong>admin123</strong></span>
+        </div>
+
+        <!-- Footer Notice -->
+        <div class="login-footer">
+            &copy; 2026 CodeMetric Inc. All rights reserved. &bull; Enterprise Grade Security
+        </div>
+
+    </div>
+
+    <!-- Interactive Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const passwordInput = document.getElementById('passwordInput');
+            const usernameInput = document.getElementById('usernameInput');
+            const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const autoFill = document.getElementById('autoFillCredentials');
+
+            // Password Show/Hide Toggle
+            if (togglePasswordBtn && passwordInput) {
+                togglePasswordBtn.addEventListener('click', function () {
+                    const isPassword = passwordInput.getAttribute('type') === 'password';
+                    if (isPassword) {
+                        passwordInput.setAttribute('type', 'text');
+                        eyeIcon.innerHTML = `
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        `;
+                    } else {
+                        passwordInput.setAttribute('type', 'password');
+                        eyeIcon.innerHTML = `
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        `;
+                    }
+                });
+            }
+
+            // Clickable Quick-Autofill Helper
+            if (autoFill && usernameInput && passwordInput) {
+                autoFill.addEventListener('click', function () {
+                    usernameInput.value = 'admin';
+                    passwordInput.value = 'admin123';
+                    passwordInput.focus();
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

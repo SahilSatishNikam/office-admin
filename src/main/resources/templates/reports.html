@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Theme & Color Scheme (Supports Dark / Light Mode) -->
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function() {
+            try {
+                var s = localStorage.getItem('theme') || localStorage.getItem('color-scheme');
+                if (s === 'dark' || (!s && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'dark';
+                } else if (s === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'light';
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <title th:text="${pageTitle != null ? pageTitle : 'Reports'}">Reports</title>
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <style>
+        @media print {
+            .app-sidebar, .top-navbar, .footer, .btn, .no-print {
+                display: none !important;
+            }
+            .main-wrapper {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .dashboard-card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <div th:replace="~{fragments/sidebar :: sidebar(${activeMenu})}"></div>
+
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            <!-- Top Navigation Bar -->
+            <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+            <!-- Page Content -->
+            <main class="dashboard-content dashboard-main">
+
+                <!-- Page Header with Export Buttons -->
+                <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h1 class="welcome-title">Executive Performance Reports</h1>
+                        <p class="welcome-subtitle">Complete audit logs and downloadable reports for your social channels.</p>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;" class="no-print">
+                        <!-- CSV Download Button -->
+                        <a th:href="@{/reports/export/csv}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>Download CSV</span>
+                        </a>
+
+                        <!-- Print / PDF Button -->
+                        <button type="button" class="btn btn-primary" onclick="window.print()" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                            <span>Print / Save PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Executive Summary Metrics Grid -->
+                <div class="metrics-grid" style="margin-bottom: 28px;">
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Total Network Audience</span>
+                            <div class="metric-icon-box icon-purple">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" th:text="${stats.totalFollowers}">0</h2>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Across all connected channels</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Total Interaction Volume</span>
+                            <div class="metric-icon-box icon-blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" th:text="${stats.totalEngagement}">0</h2>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Likes + Comments + Shares</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Published Content Count</span>
+                            <div class="metric-icon-box icon-green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" th:text="${stats.publishedPosts}">0</h2>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext" th:text="${stats.scheduledPosts} + ' queued in pipeline'">0 queued in pipeline</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Avg. Engagement Rate</span>
+                            <div class="metric-icon-box icon-amber">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" th:text="${stats.avgEngagementRate}">0.0%</h2>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Workspace benchmark</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comprehensive Audit Table -->
+                <div class="dashboard-card" style="padding: 24px;">
+                    <div class="card-header" style="margin-bottom: 20px;">
+                        <div>
+                            <div class="card-title-group">
+                                <h3 class="card-title">Detailed Content Activity Log</h3>
+                                <span class="card-count" th:text="${allPosts.size()}">0</span>
+                            </div>
+                            <p class="card-desc">Audit report of all content scheduled or published across channels</p>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:if="${allPosts == null or allPosts.isEmpty()}" style="padding: 48px; text-align: center; border: 2px dashed var(--border-color); border-radius: var(--radius-lg);">
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; color: var(--text-muted); opacity: 0.7;">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                        </svg>
+                        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">No Content Activity Yet</h4>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Create your first social update to generate live performance reports.</p>
+                        <a th:href="@{/content}" class="btn btn-primary no-print">+ Create Post</a>
+                    </div>
+
+                    <!-- Table of Posts -->
+                    <div th:if="${allPosts != null and !allPosts.isEmpty()}" style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                                    <th style="padding: 12px 14px;">Platform</th>
+                                    <th style="padding: 12px 14px;">Title / Caption</th>
+                                    <th style="padding: 12px 14px;">Format</th>
+                                    <th style="padding: 12px 14px;">Status</th>
+                                    <th style="padding: 12px 14px;">Date</th>
+                                    <th style="padding: 12px 14px;">Likes</th>
+                                    <th style="padding: 12px 14px;">Comments</th>
+                                    <th style="padding: 12px 14px;">Shares</th>
+                                    <th style="padding: 12px 14px;">Reach</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="post : ${allPosts}" style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 14px; font-weight: 700;">
+                                        <span th:text="${post.platform}">Platform</span>
+                                    </td>
+                                    <td style="padding: 14px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        <strong th:text="${post.title}">Title</strong>
+                                    </td>
+                                    <td style="padding: 14px; color: var(--text-muted);" th:text="${post.mediaType}">Format</td>
+                                    <td style="padding: 14px;">
+                                        <span th:if="${post.status == 'PUBLISHED'}" class="status-pill-green">PUBLISHED</span>
+                                        <span th:if="${post.status == 'SCHEDULED'}" class="badge-pill-amber" style="padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">SCHEDULED</span>
+                                        <span th:if="${post.status == 'DRAFT'}" style="background: rgba(148, 163, 184, 0.2); color: #475569; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">DRAFT</span>
+                                    </td>
+                                    <td style="padding: 14px; color: var(--text-muted);" th:text="${post.status == 'SCHEDULED' ? post.formattedScheduledDate : (post.status == 'PUBLISHED' ? post.formattedPublishedTime : 'Draft')}">Date</td>
+                                    <td style="padding: 14px; font-weight: 600;" th:text="${post.formattedLikes}">0</td>
+                                    <td style="padding: 14px; font-weight: 600;" th:text="${post.formattedComments}">0</td>
+                                    <td style="padding: 14px; font-weight: 600;" th:text="${post.formattedShares}">0</td>
+                                    <td style="padding: 14px; font-weight: 700;" th:text="${post.formattedReach}">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Footer -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
+

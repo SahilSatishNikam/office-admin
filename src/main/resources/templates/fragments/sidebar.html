@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside th:fragment="sidebar(activeMenu)" class="app-sidebar" id="appSidebar">
+    <!-- Sidebar Header / Brand -->
+    <div class="sidebar-header">
+        <a th:href="@{/dashboard}" class="brand-link">
+            <div class="brand-icon-wrapper" style="overflow: hidden; background: transparent; box-shadow: none;">
+                <img th:src="@{/images/logo.png}" alt="CodeMetric Logo" class="brand-logo-img" style="width: 38px; height: 38px; object-fit: contain; border-radius: var(--radius-md);">
+            </div>
+            <div class="brand-text-group">
+                <span class="brand-title">CodeMetric</span>
+                <span class="brand-tag">Social Media DB</span>
+            </div>
+        </a>
+        <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Navigation Section -->
+    <div class="sidebar-nav-container">
+        <div class="nav-section-label" th:text="${userRoleAuthority == 'ROLE_DESIGNER' ? 'DESIGNER WORKSPACE' : (userRoleAuthority == 'ROLE_CREATOR' ? 'CREATOR WORKSPACE' : 'MAIN MENU')}">MAIN MENU</div>
+        <nav class="sidebar-nav">
+            <!-- 1. Overview -->
+            <a th:href="@{/dashboard}" 
+               th:classappend="${activeMenu == 'overview'} ? 'active' : ''" 
+               class="nav-item">
+                <span class="nav-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </span>
+                <span class="nav-label">Overview</span>
+                <span class="nav-pill" th:if="${activeMenu == 'overview'}">Live</span>
+            </a>
+
+            <!-- 2. Designer Vault (Promoted for Designer) -->
+            <a th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_DESIGNER'}"
+               th:href="@{/dashboard#designerVaultSection}" 
+               class="nav-item">
+                <span class="nav-icon-wrapper" style="color: #ec4899;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                        <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                        <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                        <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"></path>
+                    </svg>
+                </span>
+                <span class="nav-label">Designer Vault</span>
+                <span class="nav-pill" style="background: rgba(236,72,153,0.15); color: #ec4899; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;">Assets</span>
+            </a>
+
+            <!-- 3. Creator Studio (Promoted for Creator) -->
+            <a th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_CREATOR'}"
+               th:href="@{/dashboard#creatorStudioSection}" 
+               class="nav-item">
+                <span class="nav-icon-wrapper" style="color: #f97316;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                        <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                        <path d="M2 2l7.586 7.586"></path>
+                        <circle cx="11" cy="11" r="2"></circle>
+                    </svg>
+                </span>
+                <span class="nav-label">Creator Studio</span>
+                <span class="nav-pill" style="background: rgba(249,115,22,0.15); color: #f97316; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;">Drafts</span>
+            </a>
+
+            <!-- 4. Content Calendar (Creator + Admin) -->
+            <a th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_CREATOR'}"
+               th:href="@{/calendar}" 
+               th:classappend="${activeMenu == 'calendar'} ? 'active' : ''" 
+               class="nav-item">
+                <span class="nav-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </span>
+                <span class="nav-label">Content Calendar</span>
+                <span class="nav-badge queued" th:text="${stats != null ? stats.scheduledPosts : 0}">0</span>
+            </a>
+
+            <!-- 5. Content Management (Creator + Admin) -->
+            <a th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_CREATOR'}"
+               th:href="@{/content}" 
+               th:classappend="${activeMenu == 'content'} ? 'active' : ''" 
+               class="nav-item">
+                <span class="nav-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </span>
+                <span class="nav-label">Content Management</span>
+            </a>
+
+            <!-- 6. Records & Custom Folders -->
+            <a th:href="@{/dashboard#foldersSection}" 
+               class="nav-item">
+                <span class="nav-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </span>
+                <span class="nav-label">Records & Folders</span>
+                <span class="nav-badge count" id="sidebarFolderCountBadge" th:text="${folders != null ? folders.size() : 0}">0</span>
+            </a>
+
+            <!-- ADMIN-ONLY SECTION: Accounts, Analytics, Reports -->
+            <th:block th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">
+                <div class="nav-section-label" style="margin-top: 14px;">ADMINISTRATION</div>
+
+                <!-- Social Accounts -->
+                <a th:href="@{/accounts}" 
+                   th:classappend="${activeMenu == 'accounts'} ? 'active' : ''" 
+                   class="nav-item">
+                    <span class="nav-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Social Accounts</span>
+                    <span class="nav-badge count" th:text="${socialAccounts != null ? socialAccounts.size() : 0}">0</span>
+                </a>
+
+                <!-- Analytics -->
+                <a th:href="@{/analytics}" 
+                   th:classappend="${activeMenu == 'analytics'} ? 'active' : ''" 
+                   class="nav-item">
+                    <span class="nav-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Analytics</span>
+                </a>
+
+                <!-- Reports -->
+                <a th:href="@{/reports}" 
+                   th:classappend="${activeMenu == 'reports'} ? 'active' : ''" 
+                   class="nav-item">
+                    <span class="nav-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Reports</span>
+                </a>
+
+                <div class="nav-section-label">PREFERENCES</div>
+
+                <!-- Settings -->
+                <a th:href="@{/settings}" 
+                   th:classappend="${activeMenu == 'settings'} ? 'active' : ''" 
+                   class="nav-item">
+                    <span class="nav-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Settings</span>
+                </a>
+            </th:block>
+        </nav>
+    </div>
+
+    <!-- Sidebar Workspace Plan Card -->
+    <div class="sidebar-footer-card">
+        <div class="plan-header">
+            <div class="plan-title-row">
+                <span class="plan-badge">Enterprise</span>
+                <span class="plan-percent" th:text="${(stats != null ? stats.planUsagePercentage : 0) + '%'}">0%</span>
+            </div>
+            <p class="plan-desc" th:text="${(socialAccounts != null ? socialAccounts.size() : (stats != null ? stats.connectedAccountsCount : 0)) + ' of ' + (stats != null ? stats.maxAccounts : 20) + ' accounts active'}">0 of 20 accounts active</p>
+        </div>
+        <div class="plan-progress-bar">
+            <div class="plan-progress-fill" th:style="'width: ' + ${(stats != null ? stats.planUsagePercentage : 0)} + '%;'" style="width: 0%;"></div>
+        </div>
+        <div class="plan-status-row">
+            <span class="status-indicator-dot"></span>
+            <span class="status-text">All syncs active</span>
+        </div>
+    </div>
+</aside>
+
+</body>
+</html>
+

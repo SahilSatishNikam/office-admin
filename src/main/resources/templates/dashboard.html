@@ -1,0 +1,1880 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Theme & Color Scheme (Supports Dark / Light Mode) -->
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function () {
+            try {
+                var s = localStorage.getItem('theme') || localStorage.getItem('color-scheme');
+                if (s === 'dark' || (!s && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'dark';
+                } else if (s === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'light';
+                }
+            } catch (e) { }
+        })();
+    </script>
+    <title th:text="${pageTitle} != null ? ${pageTitle} : 'Social Media Manager Dashboard'">Social Media Manager
+        Dashboard</title>
+
+    <!-- CSRF Meta Tags for Secure Dynamic AJAX Operations -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" />
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}" />
+
+    <!-- Google Fonts for crisp SaaS typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
+
+    <!-- Dashboard Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <div class="app-layout">
+        <!-- Reusable Sidebar Fragment -->
+        <div th:replace="~{fragments/sidebar :: sidebar(${activeMenu})}"></div>
+
+        <!-- Main Content Area Wrapper -->
+        <div class="main-wrapper">
+            <!-- Reusable Navbar Fragment -->
+            <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+            <!-- Dashboard Main Content -->
+            <main class="dashboard-content dashboard-main" id="mainContent">
+
+                <!-- Welcome Banner / Header -->
+                <section class="dashboard-banner">
+                    <div class="banner-text-group">
+                        <div class="banner-greeting">
+                            <h1 th:if="${userRoleAuthority == 'ROLE_DESIGNER'}">Designer Studio &amp; Assets</h1>
+                            <h1 th:if="${userRoleAuthority == 'ROLE_CREATOR'}">Content Creator Studio</h1>
+                            <h1 th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">Social Media
+                                Overview</h1>
+                            <span class="live-pill">
+                                <span class="pulse-indicator"></span>
+                                <span
+                                    th:text="${userRoleAuthority == 'ROLE_DESIGNER' ? 'Designer Space' : (userRoleAuthority == 'ROLE_CREATOR' ? 'Creator Space' : 'Live Syncing')}">Live
+                                    Syncing</span>
+                            </span>
+                        </div>
+                        <p class="banner-subtitle">
+                            Welcome back, <strong th:text="${userName != null ? userName : 'User'}">User</strong>!
+                            <span th:if="${userRoleAuthority == 'ROLE_DESIGNER'}">Upload, manage, and inspect brand
+                                graphics, mockups, and banners.</span>
+                            <span th:if="${userRoleAuthority == 'ROLE_CREATOR'}">Draft viral hooks, video scripts, and
+                                social copy for publishing.</span>
+                            <span th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">Unified
+                                dashboard for social performance, content, and team assets.</span>
+                        </p>
+                    </div>
+                    <div class="banner-actions">
+                        <th:block th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">
+                            <button type="button" class="btn btn-secondary" id="refreshStatsBtn"
+                                title="Sync live metrics">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                    </path>
+                                </svg>
+                                <span>Live Sync</span>
+                            </button>
+                            <button type="button" class="btn btn-primary" id="schedulePostBannerBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span>Schedule Post</span>
+                            </button>
+                        </th:block>
+
+                        <th:block th:if="${userRoleAuthority == 'ROLE_DESIGNER'}">
+                            <button type="button" class="btn btn-primary btn-designer-accent"
+                                onclick="const m = document.getElementById('addDesignerAssetModal'); if(m){ m.classList.add('show'); m.setAttribute('aria-hidden', 'false'); }">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    style="width: 16px; height: 16px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>+ Add Design Asset</span>
+                            </button>
+                        </th:block>
+
+                        <th:block th:if="${userRoleAuthority == 'ROLE_CREATOR'}">
+                            <button type="button" class="btn btn-primary btn-creator-accent"
+                                onclick="const m = document.getElementById('addCreatorDraftModal'); if(m){ m.classList.add('show'); m.setAttribute('aria-hidden', 'false'); }">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    style="width: 16px; height: 16px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>+ New Creator Script</span>
+                            </button>
+                        </th:block>
+                    </div>
+                </section>
+
+                <!-- 1b. Designer Metrics (Designer Only) -->
+                <section class="metrics-grid" th:if="${userRoleAuthority == 'ROLE_DESIGNER'}">
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Total Design Assets</span>
+                            <div class="metric-icon-box" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                                    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                                    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                                    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                                    <path
+                                        d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" th:text="${designerRecords != null ? designerRecords.size() : 0}">3
+                            </h2>
+                            <div class="metric-trend trend-positive">
+                                <span>Active</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Archived in Designer Vault</span>
+                            <span class="badge-pill">Vault</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Approved Assets</span>
+                            <div class="metric-icon-box icon-green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" style="color: var(--success);"
+                                th:text="${designerRecords != null ? #lists.size(designerRecords.?[badge == 'Approved']) : 0}">
+                                1</h2>
+                            <div class="metric-trend trend-positive">
+                                <span>Ready</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Approved by admin for posts</span>
+                            <span class="badge-pill"
+                                style="background: rgba(16, 185, 129, 0.15); color: #059669;">Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">In Review</span>
+                            <div class="metric-icon-box" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" style="color: #f59e0b;"
+                                th:text="${designerRecords != null ? #lists.size(designerRecords.?[badge == 'In Review']) : 0}">
+                                1</h2>
+                            <div class="metric-trend" style="color: #f59e0b;">
+                                <span>Pending</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Awaiting admin review</span>
+                            <span class="badge-pill"
+                                style="background: rgba(245, 158, 11, 0.15); color: #d97706;">Review</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Workspace Mode</span>
+                            <div class="metric-icon-box icon-blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" style="font-size: 1.4rem;">Designer</h2>
+                            <div class="metric-trend trend-positive">
+                                <span>Isolated</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Restricted vault access</span>
+                            <span class="badge-pill">Creative</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 1c. Creator Metrics (Creator Only) -->
+                <section class="metrics-grid" th:if="${userRoleAuthority == 'ROLE_CREATOR'}">
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Total Scripts &amp; Drafts</span>
+                            <div class="metric-icon-box" style="background: rgba(249, 115, 22, 0.12); color: #f97316;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                                    <path d="M2 2l7.586 7.586"></path>
+                                    <circle cx="11" cy="11" r="2"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" th:text="${creatorRecords != null ? creatorRecords.size() : 0}">3
+                            </h2>
+                            <div class="metric-trend trend-positive">
+                                <span>Active</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Saved in Creator Studio</span>
+                            <span class="badge-pill">Studio</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Ready to Post</span>
+                            <div class="metric-icon-box icon-green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" style="color: var(--success);"
+                                th:text="${creatorRecords != null ? #lists.size(creatorRecords.?[badge == 'Ready to Post']) : 0}">
+                                1</h2>
+                            <div class="metric-trend trend-positive">
+                                <span>Approved</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Finalized copy ready for publishing</span>
+                            <span class="badge-pill"
+                                style="background: rgba(16, 185, 129, 0.15); color: #059669;">Ready</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Polished Scripts</span>
+                            <div class="metric-icon-box" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                    </polygon>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" style="color: #8b5cf6;"
+                                th:text="${creatorRecords != null ? #lists.size(creatorRecords.?[badge == 'Polished']) : 0}">
+                                1</h2>
+                            <div class="metric-trend trend-positive" style="color: #8b5cf6;">
+                                <span>Polished</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Formatted with hooks and CTAs</span>
+                            <span class="badge-pill"
+                                style="background: rgba(139, 92, 246, 0.15); color: #7c3aed;">Refined</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Workspace Mode</span>
+                            <div class="metric-icon-box icon-blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" style="font-size: 1.4rem;">Creator</h2>
+                            <div class="metric-trend trend-positive">
+                                <span>Isolated</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Script writing &amp; hooks access</span>
+                            <span class="badge-pill">Content</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 1. Key Metrics Cards Grid (Admin Full Overview) -->
+                <section class="metrics-grid" th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">
+                    <!-- Metric 1: Total Followers -->
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Total Followers</span>
+                            <div class="metric-icon-box icon-purple">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" id="statTotalFollowers" th:text="${stats.totalFollowers}">0</h2>
+                            <div class="metric-trend trend-positive">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                    <polyline points="17 6 23 6 23 12"></polyline>
+                                </svg>
+                                <span th:text="${stats.followersGrowth}">+0.0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Sum of connected accounts</span>
+                            <span class="channel-dots" th:if="${socialAccounts != null and !socialAccounts.isEmpty()}">
+                                <th:block th:each="account : ${socialAccounts}">
+                                    <span class="dot"
+                                        th:classappend="${account.badgeClass == 'instagram' ? 'ig' : (account.badgeClass == 'linkedin' ? 'in' : (account.badgeClass == 'twitter' ? 'tw' : 'yt'))}"
+                                        th:title="${account.platform}"></span>
+                                </th:block>
+                            </span>
+                            <span class="channel-dots" th:if="${socialAccounts == null or socialAccounts.isEmpty()}">
+                                <span class="dot" style="background: var(--text-muted); opacity: 0.4;"
+                                    title="No active channels"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Metric 2: Total Engagement -->
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Total Engagement</span>
+                            <div class="metric-icon-box icon-blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" id="statTotalEngagement" th:text="${stats.totalEngagement}">0</h2>
+                            <div class="metric-trend trend-positive">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                    <polyline points="17 6 23 6 23 12"></polyline>
+                                </svg>
+                                <span th:text="${stats.engagementGrowth}">+0.0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext"
+                                th:text="'Avg ' + ${stats.avgEngagementRate} + ' engagement rate'">0.0% engagement
+                                rate</span>
+                            <span class="badge-pill">High</span>
+                        </div>
+                    </div>
+
+                    <!-- Metric 3: Published Posts -->
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Published Posts</span>
+                            <div class="metric-icon-box icon-green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" id="statPublishedPosts" th:text="${stats.publishedPosts}">0</h2>
+                            <div class="metric-trend trend-positive">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                    <polyline points="17 6 23 6 23 12"></polyline>
+                                </svg>
+                                <span th:text="${stats.publishedGrowth}">+0.0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext" th:text="${stats.totalReach} + ' total reach'">0 total
+                                reach</span>
+                            <span class="badge-pill-success">On Target</span>
+                        </div>
+                    </div>
+
+                    <!-- Metric 4: Scheduled Posts -->
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <span class="metric-title">Scheduled Posts</span>
+                            <div class="metric-icon-box icon-amber">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-card-middle">
+                            <h2 class="metric-value" id="statScheduledPosts" th:text="${stats.scheduledPosts}">0</h2>
+                            <div class="metric-trend trend-positive">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                    <polyline points="17 6 23 6 23 12"></polyline>
+                                </svg>
+                                <span th:text="${stats.scheduledGrowth}">+0.0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-card-bottom">
+                            <span class="metric-subtext">Active automated queue</span>
+                            <span class="badge-pill-amber" id="queueBadgeText"
+                                th:text="${stats.scheduledPosts} + ' Queued'">0 Queued</span>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- Connected Channels Dynamic Overview Ribbon (Admin Only) -->
+                <section class="social-channels-bar"
+                    th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">
+                    <div class="channels-bar-header">
+                        <h3 class="channels-bar-title">Connected Accounts</h3>
+                        <span class="channels-status-pill" th:text="${socialAccounts.size()} + ' Channels Synced'">4
+                            Channels Synced</span>
+                    </div>
+                    <div class="channels-grid">
+                        <div th:if="${socialAccounts == null or socialAccounts.isEmpty()}" class="empty-state-card"
+                            style="grid-column: 1 / -1; padding: 28px; text-align: center; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border-color); color: var(--text-muted);">
+                            <p style="margin: 0; font-size: 14px; font-weight: 500;">No social accounts connected yet.
+                                Connect your channels to track real-time analytics.</p>
+                        </div>
+                        <th:block th:each="account : ${socialAccounts}">
+                            <div class="channel-card" th:classappend="'channel-' + ${account.badgeClass}">
+                                <div class="channel-icon-pill">
+                                    <svg th:if="${account.badgeClass == 'instagram'}" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                    </svg>
+                                    <svg th:if="${account.badgeClass == 'linkedin'}" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                                        </path>
+                                        <rect x="2" y="9" width="4" height="12"></rect>
+                                        <circle cx="4" cy="4" r="2"></circle>
+                                    </svg>
+                                    <svg th:if="${account.badgeClass == 'twitter'}" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+                                        </path>
+                                    </svg>
+                                    <svg th:if="${account.badgeClass == 'youtube'}" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z">
+                                        </path>
+                                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                                    </svg>
+                                </div>
+                                <div class="channel-details">
+                                    <div class="channel-name-row">
+                                        <span class="channel-platform" th:text="${account.platform}">Channel</span>
+                                        <span class="channel-growth" th:text="${account.formattedGrowth}">+0.0%</span>
+                                    </div>
+                                    <div class="channel-handle" th:text="${account.handle}">@handle</div>
+                                    <div class="channel-stat-line">
+                                        <strong th:text="${account.formattedFollowers}">0</strong> followers
+                                        <span class="bullet-dot">&bull;</span>
+                                        <span th:text="${account.formattedEngagement}">0.0%</span> eng.
+                                    </div>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </section>
+
+
+                <!-- 2. Charts Section (Follower Growth & Engagement Overview - Admin Only) -->
+                <section class="charts-section-grid"
+                    th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">
+                    <!-- Chart 1: Follower Growth Chart -->
+                    <div class="dashboard-card chart-card growth-chart-card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title-group">
+                                    <h3 class="card-title">Follower Growth</h3>
+                                    <span class="card-badge" id="netGrowthBadge" th:text="${stats.netGrowth}">0 net
+                                        new</span>
+                                </div>
+                                <p class="card-desc">Audience acquisition across all connected networks</p>
+                            </div>
+                            <!-- Timeframe Selector Tabs (Fetches live from REST API) -->
+                            <div class="timeframe-selector" id="timeframeSelector">
+                                <button type="button" class="time-tab" data-period="7d">7D</button>
+                                <button type="button" class="time-tab active" data-period="30d">30D</button>
+                                <button type="button" class="time-tab" data-period="90d">90D</button>
+                                <button type="button" class="time-tab" data-period="1y">1Y</button>
+                            </div>
+                        </div>
+
+                        <!-- Chart Canvas Container -->
+                        <div class="chart-canvas-wrapper">
+                            <canvas id="followerGrowthChart"></canvas>
+                        </div>
+
+                        <!-- Chart Footer Summary -->
+                        <div class="chart-footer-stats">
+                            <div class="chart-stat-item">
+                                <span class="chart-stat-label">Organic Growth</span>
+                                <span class="chart-stat-value" id="statOrganic"
+                                    th:text="${stats.organicGrowth}">0</span>
+                            </div>
+                            <div class="chart-stat-item">
+                                <span class="chart-stat-label">Paid / Campaign</span>
+                                <span class="chart-stat-value" id="statPaid" th:text="${stats.paidGrowth}">0</span>
+                            </div>
+                            <div class="chart-stat-item">
+                                <span class="chart-stat-label">Peak Velocity Day</span>
+                                <span class="chart-stat-value" id="statPeak" th:text="${stats.peakDay}">None</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Engagement Overview Chart -->
+                    <div class="dashboard-card chart-card engagement-chart-card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title-group">
+                                    <h3 class="card-title">Engagement Overview</h3>
+                                    <span class="card-badge-blue" th:text="${stats.totalEngagement} + ' interactions'">0
+                                        interactions</span>
+                                </div>
+                                <p class="card-desc">Weekly breakdown of Likes, Comments, and Shares</p>
+                            </div>
+                            <div class="chart-dropdown-toggle">
+                                <span class="legend-indicator dot-purple">Likes</span>
+                                <span class="legend-indicator dot-blue">Comments</span>
+                                <span class="legend-indicator dot-green">Shares</span>
+                            </div>
+                        </div>
+
+                        <!-- Engagement Chart Canvas -->
+                        <div class="chart-canvas-wrapper">
+                            <canvas id="engagementOverviewChart"></canvas>
+                        </div>
+
+                        <!-- Breakdown pills -->
+                        <div class="chart-footer-breakdown">
+                            <div class="breakdown-pill">
+                                <span class="dot-swatch swatch-purple"></span>
+                                <span>Likes: <strong id="statLikes" th:text="${stats.totalLikes}">0</strong></span>
+                            </div>
+                            <div class="breakdown-pill">
+                                <span class="dot-swatch swatch-blue"></span>
+                                <span>Comments: <strong id="statComments"
+                                        th:text="${stats.totalComments}">0</strong></span>
+                            </div>
+                            <div class="breakdown-pill">
+                                <span class="dot-swatch swatch-green"></span>
+                                <span>Shares: <strong id="statShares" th:text="${stats.totalShares}">0</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- 3. Posts Sections (Recent Posts & Upcoming Scheduled Posts) -->
+                <section class="posts-section-grid"
+                    th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_CREATOR'}">
+
+                    <!-- Left: Recent Posts Section -->
+                    <div class="dashboard-card recent-posts-card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title-group">
+                                    <h3 class="card-title">Recent Posts</h3>
+                                    <span class="card-count" id="recentPostsCountBadge"
+                                        th:text="${recentPosts.size()}">0</span>
+                                </div>
+                                <p class="card-desc">Live performance of published social media updates</p>
+                            </div>
+
+                            <!-- Channel Filter Tabs -->
+                            <div class="posts-filter-tabs" id="recentPostsFilter">
+                                <button type="button" class="filter-pill active" data-filter="all">All</button>
+                                <button type="button" class="filter-pill" data-filter="linkedin">LinkedIn</button>
+                                <button type="button" class="filter-pill" data-filter="instagram">Instagram</button>
+                                <button type="button" class="filter-pill" data-filter="twitter">X / Twitter</button>
+                                <button type="button" class="filter-pill" data-filter="youtube">YouTube</button>
+                            </div>
+                        </div>
+
+                        <!-- Posts List Table / Stream -->
+                        <div class="recent-posts-list" id="recentPostsContainer">
+                            <div th:if="${recentPosts == null or recentPosts.isEmpty()}" class="empty-state-card"
+                                style="padding: 32px 16px; text-align: center; color: var(--text-muted);">
+                                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" style="margin-bottom: 8px; opacity: 0.6;">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                                <p style="margin: 0; font-size: 14px; font-weight: 500;">No published posts yet.</p>
+                                <span style="font-size: 12px; opacity: 0.8;">Click 'Create Post' to publish your first
+                                    social update.</span>
+                            </div>
+                            <th:block th:each="post : ${recentPosts}">
+                                <div class="post-item-row draggable-post-item" th:data-platform="${post.platformClass}"
+                                    th:id="'post-row-' + ${post.id}" draggable="true" th:data-post-id="${post.id}"
+                                    th:data-post-title="${post.title}">
+                                    <span class="post-drag-handle" title="Drag to folder">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="9" cy="6" r="1.5"></circle>
+                                            <circle cx="15" cy="6" r="1.5"></circle>
+                                            <circle cx="9" cy="12" r="1.5"></circle>
+                                            <circle cx="15" cy="12" r="1.5"></circle>
+                                            <circle cx="9" cy="18" r="1.5"></circle>
+                                            <circle cx="15" cy="18" r="1.5"></circle>
+                                        </svg>
+                                    </span>
+                                    <div class="post-platform-badge" th:classappend="'badge-' + ${post.platformClass}">
+                                        <!-- Dynamic platform icon -->
+                                        <svg th:if="${post.platformClass == 'linkedin'}" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                                            </path>
+                                            <rect x="2" y="9" width="4" height="12"></rect>
+                                            <circle cx="4" cy="4" r="2"></circle>
+                                        </svg>
+                                        <svg th:if="${post.platformClass == 'instagram'}" viewBox="0 0 24 24"
+                                            fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                        </svg>
+                                        <svg th:if="${post.platformClass == 'twitter'}" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+                                            </path>
+                                        </svg>
+                                        <svg th:if="${post.platformClass == 'youtube'}" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z">
+                                            </path>
+                                            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                                        </svg>
+                                    </div>
+
+                                    <div class="post-main-content">
+                                        <div class="post-header-line">
+                                            <h4 class="post-title" th:text="${post.title}">Post Title</h4>
+                                            <span class="post-time" th:text="${post.formattedPublishedTime}">Today,
+                                                10:30 AM</span>
+                                        </div>
+                                        <p class="post-caption" th:text="${post.caption}">Post caption preview
+                                            snippet...</p>
+                                        <div th:if="${post.hasMedia()}"
+                                            style="margin: 8px 0; max-width: 280px; border-radius: var(--radius-sm); overflow: hidden; background: #000;">
+                                            <img th:if="${!post.isVideo()}" th:src="${post.mediaUrl}" alt="Post media"
+                                                style="width: 100%; max-height: 140px; object-fit: cover; display: block;">
+                                            <video th:if="${post.isVideo()}" th:src="${post.mediaUrl}" controls
+                                                style="width: 100%; max-height: 140px; object-fit: cover; display: block;"></video>
+                                        </div>
+                                        <div class="post-tags-row">
+                                            <span class="media-tag" th:text="${post.mediaType}">Carousel</span>
+                                            <span class="status-pill-green" th:text="${post.status}">PUBLISHED</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="post-metrics-cluster">
+                                        <div class="stat-cell" title="Likes">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path
+                                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                                </path>
+                                            </svg>
+                                            <span class="stat-num" th:text="${post.formattedLikes}">0</span>
+                                        </div>
+                                        <div class="stat-cell" title="Comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z">
+                                                </path>
+                                            </svg>
+                                            <span class="stat-num" th:text="${post.formattedComments}">0</span>
+                                        </div>
+                                        <div class="stat-cell" title="Shares">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="18" cy="5" r="3"></circle>
+                                                <circle cx="6" cy="12" r="3"></circle>
+                                                <circle cx="18" cy="19" r="3"></circle>
+                                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                            </svg>
+                                            <span class="stat-num" th:text="${post.formattedShares}">0</span>
+                                        </div>
+                                        <div class="stat-cell engagement-pill-cell" title="Engagement Rate">
+                                            <span class="eng-rate-badge"
+                                                th:text="${post.engagementRate} + '%'">0.0%</span>
+                                        </div>
+                                        <div class="stat-cell" title="File into Folder">
+                                            <button type="button" class="btn-icon-subtle action-file-post-btn"
+                                                th:data-id="${post.id}" th:data-title="${post.title}"
+                                                title="File into Custom Folder">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <path
+                                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th:block>
+                        </div>
+
+                        <div class="card-footer-action">
+                            <a th:href="@{/dashboard}" class="btn-link">
+                                <span th:text="'View all ' + ${stats.publishedPosts} + ' published posts'">View all
+                                    published posts</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right: Upcoming Scheduled Posts Section -->
+                    <div class="dashboard-card scheduled-posts-card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title-group">
+                                    <h3 class="card-title">Scheduled Posts</h3>
+                                    <span class="card-badge-amber" id="scheduledBadgeCount"
+                                        th:text="${scheduledPosts.size()} + ' in queue'">0 in queue</span>
+                                </div>
+                                <p class="card-desc">Automated publishing queue across channels</p>
+                            </div>
+                            <button type="button" class="calendar-view-btn" id="quickAddPostBtn"
+                                title="Compose New Post">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>+ Queue</span>
+                            </button>
+                        </div>
+
+                        <!-- Scheduled Items Queue -->
+                        <div class="scheduled-items-list" id="scheduledItemsContainer">
+                            <div th:if="${scheduledPosts == null or scheduledPosts.isEmpty()}" class="empty-state-card"
+                                style="padding: 32px 16px; text-align: center; color: var(--text-muted);">
+                                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" style="margin-bottom: 8px; opacity: 0.6;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <p style="margin: 0; font-size: 14px; font-weight: 500;">Publishing queue is empty.</p>
+                                <span style="font-size: 12px; opacity: 0.8;">Schedule posts ahead of time to automate
+                                    your social pipeline.</span>
+                            </div>
+                            <th:block th:each="item : ${scheduledPosts}">
+                                <div class="scheduled-item-card draggable-post-item"
+                                    th:id="'scheduled-card-' + ${item.id}" draggable="true" th:data-post-id="${item.id}"
+                                    th:data-post-title="${item.title}">
+                                    <div class="scheduled-top-row">
+                                        <div class="scheduled-platform-info">
+                                            <span class="post-drag-handle" title="Drag to folder">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <circle cx="9" cy="6" r="1.5"></circle>
+                                                    <circle cx="15" cy="6" r="1.5"></circle>
+                                                    <circle cx="9" cy="12" r="1.5"></circle>
+                                                    <circle cx="15" cy="12" r="1.5"></circle>
+                                                    <circle cx="9" cy="18" r="1.5"></circle>
+                                                    <circle cx="15" cy="18" r="1.5"></circle>
+                                                </svg>
+                                            </span>
+                                            <div class="mini-platform-icon"
+                                                th:classappend="'icon-' + ${item.platformClass}">
+                                                <svg th:if="${item.platformClass == 'instagram'}" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                                </svg>
+                                                <svg th:if="${item.platformClass == 'linkedin'}" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                                                    </path>
+                                                    <rect x="2" y="9" width="4" height="12"></rect>
+                                                    <circle cx="4" cy="4" r="2"></circle>
+                                                </svg>
+                                                <svg th:if="${item.platformClass == 'twitter'}" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+                                                    </path>
+                                                </svg>
+                                                <svg th:if="${item.platformClass == 'youtube'}" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z">
+                                                    </path>
+                                                    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02">
+                                                    </polygon>
+                                                </svg>
+                                            </div>
+                                            <span class="scheduled-handle"
+                                                th:text="${item.accountHandle}">@codemetric</span>
+                                        </div>
+                                        <div class="scheduled-countdown-pill status-scheduled">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                            <span th:text="${item.countdown}">In 4 hours</span>
+                                        </div>
+                                    </div>
+
+                                    <p class="scheduled-caption" th:text="${item.caption}">Caption snippet...</p>
+                                    <div th:if="${item.hasMedia()}"
+                                        style="margin: 8px 0; border-radius: var(--radius-sm); overflow: hidden; max-height: 120px; background: #000;">
+                                        <img th:if="${!item.isVideo()}" th:src="${item.mediaUrl}" alt="Media attachment"
+                                            style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                                        <video th:if="${item.isVideo()}" th:src="${item.mediaUrl}" controls
+                                            style="width: 100%; max-height: 120px; object-fit: cover; display: block;"></video>
+                                    </div>
+
+                                    <div class="scheduled-bottom-row">
+                                        <div class="scheduled-meta">
+                                            <span class="scheduled-date-badge"
+                                                th:text="${item.formattedScheduledDate}">Today, 04:30 PM</span>
+                                            <span class="scheduled-format" th:text="${item.mediaType}">Image</span>
+                                        </div>
+                                        <div class="scheduled-actions">
+                                            <!-- Action: File to Folder -->
+                                            <button type="button" class="btn-icon-subtle action-file-post-btn"
+                                                th:data-id="${item.id}" th:data-title="${item.title}"
+                                                title="File into Custom Folder">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <path
+                                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                            <!-- Action: Publish Immediately -->
+                                            <button type="button" class="btn-icon-subtle action-publish-now"
+                                                th:data-id="${item.id}" title="Publish immediately to social feed">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                            </button>
+                                            <!-- Action: Delete Scheduled Item -->
+                                            <button type="button" class="btn-icon-subtle action-delete-post"
+                                                th:data-id="${item.id}" title="Remove from queue">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th:block>
+                        </div>
+
+                        <div class="card-footer-action">
+                            <button type="button" class="btn btn-secondary full-width" id="viewFullQueueBtn">
+                                <span>Schedule Another Post</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- 4. Creative Studios Hub: Designer Vault & Creator Studio -->
+                <section class="creative-studio-section" id="creativeStudioSection">
+                    <div class="dashboard-grid-dual"
+                        th:style="${userRoleAuthority == 'ROLE_DESIGNER' or userRoleAuthority == 'ROLE_CREATOR'} ? 'grid-template-columns: 1fr;' : ''">
+                        <!-- Column 1: Designer Vault (Admin + Designer) -->
+                        <div class="dashboard-card studio-card" id="designerVaultSection"
+                            th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_DESIGNER'}">
+                            <div class="card-header studio-card-header">
+                                <div class="card-title-group">
+                                    <div class="studio-header-icon-badge icon-designer">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                                            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                                            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                                            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                                            <path
+                                                d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <h3 class="card-title">Designer Vault</h3>
+                                            <span class="single-user-pill"
+                                                th:text="${userRoleAuthority == 'ROLE_DESIGNER' ? 'Designer Space' : 'Admin Managed'}">Admin
+                                                Managed</span>
+                                        </div>
+                                        <p class="card-subtitle">Brand kits, Figma files, mockups &amp; visual media</p>
+                                    </div>
+                                </div>
+                                <div class="studio-header-actions">
+                                    <span class="card-count" id="designerAssetCountBadge"
+                                        th:text="${designerRecords != null ? designerRecords.size() + ' Assets' : '0 Assets'}">0
+                                        Assets</span>
+                                    <button type="button" class="btn btn-primary btn-sm btn-designer-accent"
+                                        id="btnOpenAddDesignerModal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                            style="width: 14px; height: 14px;">
+                                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        </svg>
+                                        <span>Add Asset</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filter pills for Designer Assets -->
+                            <div class="studio-filter-toolbar">
+                                <div class="studio-filter-pills" id="designerFilterPills">
+                                    <button type="button" class="studio-pill active" data-filter="all">All
+                                        Assets</button>
+                                    <button type="button" class="studio-pill" data-filter="mockup">Mockups</button>
+                                    <button type="button" class="studio-pill" data-filter="banner">Banners</button>
+                                    <button type="button" class="studio-pill" data-filter="kit">Brand Kits</button>
+                                </div>
+                                <button type="button" class="studio-quick-link-btn" id="btnExploreDesignerFolder"
+                                    title="Open in full Folder Explorer">
+                                    <span>Folder View</span>
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Designer Assets Grid Container -->
+                            <div class="designer-assets-grid" id="designerAssetsGrid">
+                                <!-- Populated dynamically via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Creator Studio (Admin + Creator) -->
+                        <div class="dashboard-card studio-card" id="creatorStudioSection"
+                            th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_CREATOR'}">
+                            <div class="card-header studio-card-header">
+                                <div class="card-title-group">
+                                    <div class="studio-header-icon-badge icon-creator">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                                            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                                            <path d="M2 2l7.586 7.586"></path>
+                                            <circle cx="11" cy="11" r="2"></circle>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <h3 class="card-title">Creator Studio</h3>
+                                            <span class="single-user-pill"
+                                                th:text="${userRoleAuthority == 'ROLE_CREATOR' ? 'Creator Space' : 'Admin Managed'}">Admin
+                                                Managed</span>
+                                        </div>
+                                        <p class="card-subtitle">Video scripts, reel hooks, drafts &amp; campaign copy
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="studio-header-actions">
+                                    <span class="card-count" id="creatorDraftCountBadge"
+                                        th:text="${creatorRecords != null ? creatorRecords.size() + ' Drafts' : '0 Drafts'}">0
+                                        Drafts</span>
+                                    <button type="button" class="btn btn-primary btn-sm btn-creator-accent"
+                                        id="btnOpenAddCreatorModal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                            style="width: 14px; height: 14px;">
+                                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        </svg>
+                                        <span>New Script</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filter pills for Creator Drafts -->
+                            <div class="studio-filter-toolbar">
+                                <div class="studio-filter-pills" id="creatorFilterPills">
+                                    <button type="button" class="studio-pill active" data-filter="all">All
+                                        Scripts</button>
+                                    <button type="button" class="studio-pill" data-filter="video">Video &amp;
+                                        Reels</button>
+                                    <button type="button" class="studio-pill" data-filter="hook">Hook Ideas</button>
+                                    <button type="button" class="studio-pill" data-filter="copy">Post Copy</button>
+                                </div>
+                                <button type="button" class="studio-quick-link-btn" id="btnExploreCreatorFolder"
+                                    title="Open in full Folder Explorer">
+                                    <span>Folder View</span>
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Creator Drafts List Container -->
+                            <div class="creator-drafts-list" id="creatorDraftsList">
+                                <!-- Populated dynamically via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- 5. Records & Custom Folders Section -->
+                <section class="folders-section" id="foldersSection">
+                    <div class="dashboard-card folders-main-card">
+                        <div class="card-header folders-card-header">
+                            <div>
+                                <div class="card-title-group" style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="folder-header-icon-badge">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="card-title" style="margin-bottom: 2px;">Records & Custom Folders</h3>
+                                        <p class="card-subtitle" style="margin: 0;">Organize, group, and archive posts,
+                                            reports, and accounts into custom collections</p>
+                                    </div>
+                                    <span class="card-count" id="foldersCountBadge"
+                                        th:text="${folders != null ? folders.size() + ' Folders' : '3 Folders'}">3
+                                        Folders</span>
+                                </div>
+                            </div>
+                            <div class="folders-header-actions">
+                                <div class="folder-search-box">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                    <input type="text" id="folderSearchInput" placeholder="Filter folders..."
+                                        aria-label="Filter folders">
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewFolderModal">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                        style="width: 16px; height: 16px;">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    <span>New Folder</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dropzone instructions banner -->
+                        <div class="folder-drop-instructions">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            </svg>
+                            <span><strong>Drag & Drop Ready:</strong> Drag any post card from Recent or Scheduled posts
+                                above and drop it onto any folder below to file it instantly!</span>
+                        </div>
+
+                        <!-- Dynamic Folders Grid -->
+                        <div class="folders-grid" id="foldersGrid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </section>
+
+
+            </main>
+
+            <!-- Reusable Footer Fragment -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+        </div>
+    </div>
+
+    <!-- Quick "Create Post" Modal Dialog -->
+    <div class="modal-overlay" id="createPostModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title">Create Social Post</h3>
+                    <p class="modal-subtitle">Compose, schedule, or publish across your channels</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="createPostForm">
+                <div class="modal-body">
+                    <div class="channel-select-group">
+                        <label class="form-label">Select Channels</label>
+                        <div class="channel-checkbox-pills">
+                            <label class="channel-check-pill selected">
+                                <input type="checkbox" name="channels" value="Instagram" checked>
+                                <span>Instagram</span>
+                            </label>
+                            <label class="channel-check-pill selected">
+                                <input type="checkbox" name="channels" value="LinkedIn" checked>
+                                <span>LinkedIn</span>
+                            </label>
+                            <label class="channel-check-pill selected">
+                                <input type="checkbox" name="channels" value="Twitter" checked>
+                                <span>X (Twitter)</span>
+                            </label>
+                            <label class="channel-check-pill">
+                                <input type="checkbox" name="channels" value="YouTube">
+                                <span>YouTube Community</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="postContentInput" class="form-label">Post Caption / Content</label>
+                        <textarea id="postContentInput" name="content" class="form-textarea" rows="4" required
+                            placeholder="What would you like to share with your audience today? Use #hashtags or @mentions..."></textarea>
+                        <div class="textarea-footer">
+                            <span class="char-count" id="charCountSpan">0 / 2,200 chars</span>
+                            <div class="media-quick-add" id="mediaTypeSelectorGroup">
+                                <label class="media-btn active" id="btnMediaImage" title="Attach Image">
+                                    <input type="radio" name="mediaType" value="Single Image" checked
+                                        style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <span>Image</span>
+                                </label>
+                                <label class="media-btn" id="btnMediaVideo" title="Attach Video">
+                                    <input type="radio" name="mediaType" value="Video" style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                    </svg>
+                                    <span>Video</span>
+                                </label>
+                                <label class="media-btn" id="btnMediaCarousel" title="Carousel format">
+                                    <input type="radio" name="mediaType" value="Document Carousel"
+                                        style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="2" width="16" height="16" rx="2"></rect>
+                                        <path d="M6 18h12"></path>
+                                        <path d="M6 22h12"></path>
+                                    </svg>
+                                    <span>Carousel</span>
+                                </label>
+                                <label class="media-btn" id="btnMediaText" title="Text only">
+                                    <input type="radio" name="mediaType" value="Text Update" style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="17" y1="10" x2="3" y2="10"></line>
+                                        <line x1="21" y1="6" x2="3" y2="6"></line>
+                                        <line x1="21" y1="14" x2="3" y2="14"></line>
+                                        <line x1="17" y1="18" x2="3" y2="18"></line>
+                                    </svg>
+                                    <span>Text</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Media Attachment Box (Image / Video Upload & Preview) -->
+                        <div id="mediaUploadBox" class="media-upload-container"
+                            style="margin-top: 12px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 16px; background: var(--bg-subtle, #f8fafc); transition: all 0.2s;">
+                            <!-- Hidden input for file browse -->
+                            <input type="file" id="mediaFileInput" accept="image/*" style="display: none;">
+                            <!-- Hidden input holding media URL / base64 -->
+                            <input type="hidden" id="postMediaUrlInput" name="mediaUrl">
+
+                            <!-- Prompt State -->
+                            <div id="mediaUploadPrompt"
+                                style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+                                <div id="mediaUploadIcon" style="color: var(--primary);">
+                                    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
+                                        stroke-width="1.8">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                </div>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+                                    <button type="button" class="btn btn-secondary" id="browseMediaBtn"
+                                        style="padding: 4px 12px; font-size: 12px; margin-right: 6px;">
+                                        ðŸ“ Choose <span id="mediaTypeLabel">Image</span>
+                                    </button>
+                                    or drag &amp; drop file here
+                                </div>
+                                <span style="font-size: 11px; color: var(--text-muted);" id="mediaFormatHint">Supports
+                                    PNG, JPG, WEBP, GIF (Max 25MB)</span>
+
+                                <div
+                                    style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 420px; margin-top: 6px;">
+                                    <input type="url" id="mediaUrlDirectInput" class="form-input"
+                                        style="padding: 6px 10px; font-size: 12px;"
+                                        placeholder="Or paste public image/video URL...">
+                                    <button type="button" class="btn btn-secondary" id="applyMediaUrlBtn"
+                                        style="padding: 6px 12px; font-size: 12px; white-space: nowrap;">Attach</button>
+                                </div>
+                            </div>
+
+                            <!-- Preview State -->
+                            <div id="mediaPreviewWrapper"
+                                style="display: none; position: relative; text-align: center;">
+                                <img id="imagePreviewElement" src="" alt="Post media preview"
+                                    style="max-height: 180px; max-width: 100%; border-radius: 8px; object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; margin: 0 auto;">
+                                <video id="videoPreviewElement" controls
+                                    style="max-height: 180px; max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; margin: 0 auto;"></video>
+                                <div
+                                    style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                                    <span id="mediaFileNameBadge"
+                                        style="font-size: 12px; color: var(--text-muted); font-weight: 600;"></span>
+                                    <button type="button" id="removeMediaBtn" class="btn btn-secondary"
+                                        style="padding: 4px 12px; font-size: 11px; color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
+                                        âœ• Remove Media
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half-col">
+                            <label class="form-label">Publishing Option</label>
+                            <select class="form-select" id="publishOptionSelect" name="publishOption">
+                                <option value="schedule">Schedule for Later</option>
+                                <option value="now">Publish Immediately</option>
+                                <option value="draft">Save as Draft</option>
+                            </select>
+                        </div>
+                        <div class="form-group half-col" id="scheduleDateTimeGroup">
+                            <label class="form-label">Date & Time</label>
+                            <input type="datetime-local" class="form-input" id="scheduleDateTimeInput"
+                                name="scheduledDateTime">
+                        </div>
+                    </div>
+
+                    <!-- Reminder Alert Options (Email & SMS/MSG) -->
+                    <div id="scheduleReminderOptionsBox"
+                        style="margin-top: 12px; padding: 14px; background: var(--bg-subtle, #f8fafc); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                        <div
+                            style="font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <span>🔔 Post Reminder Alerts</span>
+                            <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">(Email &amp;
+                                Mobile MSG)</span>
+                        </div>
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px;">
+                            <label
+                                style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                <input type="checkbox" id="postRemindEmailCheckbox" name="remindEmail" value="true"
+                                    checked>
+                                <span>📧 Email Reminder</span>
+                            </label>
+                            <label
+                                style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                <input type="checkbox" id="postRemindSmsCheckbox" name="remindSms" value="true" checked>
+                                <span>📱 SMS / WhatsApp MSG</span>
+                            </label>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Alert
+                                    Timing</label>
+                                <select class="form-select" id="postReminderTimingSelect" name="reminderMinutesBefore"
+                                    style="padding: 6px 10px; font-size: 12px;">
+                                    <option value="15" selected>15m before publish</option>
+                                    <option value="30">30m before publish</option>
+                                    <option value="60">1h before publish</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Recipient
+                                    Phone / Email</label>
+                                <input type="text" class="form-input" id="postRecipientContactInput"
+                                    placeholder="Default user contact" style="padding: 6px 10px; font-size: 12px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="modalCancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="modalSubmitBtn">
+                        <span>Schedule Post</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 1. Create / Edit Folder Modal -->
+    <div class="modal-overlay" id="createFolderModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title" id="folderModalTitle">Create Custom Folder</h3>
+                    <p class="modal-subtitle">Organize dashboard records, posts, and campaigns</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="folderModalCloseBtn" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="createFolderForm">
+                <input type="hidden" id="folderEditId" name="id" value="">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="folderNameInput" class="form-label">Folder Name <span
+                                class="required-star">*</span></label>
+                        <input type="text" id="folderNameInput" name="name" class="form-input"
+                            placeholder="e.g. Campaigns 2026, Weekly Digests, Pending Review" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="folderDescInput" class="form-label">Description / Purpose</label>
+                        <textarea id="folderDescInput" name="description" class="form-textarea" rows="2"
+                            placeholder="Describe what records and posts belong in this collection..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Folder Color Theme</label>
+                        <div class="color-picker-row" id="folderColorPicker">
+                            <button type="button" class="color-swatch-btn selected" data-color="#4f46e5"
+                                style="background-color: #4f46e5;" title="Indigo"></button>
+                            <button type="button" class="color-swatch-btn" data-color="#10b981"
+                                style="background-color: #10b981;" title="Emerald"></button>
+                            <button type="button" class="color-swatch-btn" data-color="#f59e0b"
+                                style="background-color: #f59e0b;" title="Amber"></button>
+                            <button type="button" class="color-swatch-btn" data-color="#ec4899"
+                                style="background-color: #ec4899;" title="Rose"></button>
+                            <button type="button" class="color-swatch-btn" data-color="#8b5cf6"
+                                style="background-color: #8b5cf6;" title="Violet"></button>
+                            <button type="button" class="color-swatch-btn" data-color="#06b6d4"
+                                style="background-color: #06b6d4;" title="Cyan"></button>
+                            <button type="button" class="color-swatch-btn" data-color="#3b82f6"
+                                style="background-color: #3b82f6;" title="Blue"></button>
+                        </div>
+                        <input type="hidden" id="folderSelectedColor" name="color" value="#4f46e5">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Icon Category</label>
+                        <div class="icon-picker-row" id="folderIconPicker">
+                            <button type="button" class="icon-option-pill selected" data-icon="folder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                    </path>
+                                </svg>
+                                <span>Folder</span>
+                            </button>
+                            <button type="button" class="icon-option-pill" data-icon="campaign">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                </svg>
+                                <span>Campaign</span>
+                            </button>
+                            <button type="button" class="icon-option-pill" data-icon="digest">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                                </svg>
+                                <span>Digest</span>
+                            </button>
+                            <button type="button" class="icon-option-pill" data-icon="review">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span>Review</span>
+                            </button>
+                            <button type="button" class="icon-option-pill" data-icon="star">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                    </polygon>
+                                </svg>
+                                <span>Favorites</span>
+                            </button>
+                        </div>
+                        <input type="hidden" id="folderSelectedIcon" name="icon" value="folder">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="folderModalCancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="folderModalSubmitBtn">
+                        <span>Save Folder</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Folder Detail & Records Explorer Modal -->
+    <div class="modal-overlay" id="folderDetailModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-large">
+            <!-- Colored Banner Header -->
+            <div class="folder-detail-header-banner" id="folderDetailBanner"
+                style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                <div class="folder-banner-info">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="folderDetailIconSlot">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                </path>
+                            </svg>
+                        </span>
+                        <h2 class="folder-banner-title" id="folderDetailTitle">Campaigns 2026</h2>
+                    </div>
+                    <p class="folder-banner-desc" id="folderDetailDesc">Collection description</p>
+                    <div class="folder-banner-badge" id="folderDetailRecordBadge">ðŸ“ 3 Records Archived</div>
+                </div>
+                <button type="button" class="modal-close-btn" id="folderDetailCloseBtn" aria-label="Close dialog"
+                    style="color: #ffffff; background: rgba(255,255,255,0.15);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Toolbar (Search, Filter, Export, Add Record) -->
+            <div class="folder-detail-toolbar">
+                <div class="folder-filter-pills" id="folderRecordTypeFilter">
+                    <button type="button" class="folder-filter-pill active" data-type="all">All Records</button>
+                    <button type="button" class="folder-filter-pill" data-type="media">Images &amp; Videos</button>
+                    <button type="button" class="folder-filter-pill" data-type="post">Posts</button>
+                    <button type="button" class="folder-filter-pill" data-type="report">Reports</button>
+                    <button type="button" class="folder-filter-pill" data-type="note">Notes</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnExportFolderCsv"
+                        title="Export this folder to CSV">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Export CSV</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnToggleAddMediaPanel"
+                        title="Upload image or video into this folder">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>Upload Media</span>
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnToggleAddRecordPanel">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Add Record</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Inline Add Record & Media Panel (collapsible) -->
+            <div class="add-record-panel" id="addRecordPanel">
+                <!-- Mode Tabs -->
+                <div class="folder-add-tabs"
+                    style="display: flex; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <button type="button" class="folder-add-tab-btn active" id="tabAddNoteBtn"
+                        style="background: none; border: none; font-size: 13px; font-weight: 700; color: var(--primary); cursor: pointer; padding: 4px 10px; border-radius: 6px;">ðŸ“
+                        Note / Task</button>
+                    <button type="button" class="folder-add-tab-btn" id="tabAddMediaBtn"
+                        style="background: none; border: none; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; padding: 4px 10px; border-radius: 6px;">ðŸ–¼ï¸
+                        Image / Video Upload</button>
+                </div>
+
+                <form id="addRecordForm">
+                    <input type="hidden" id="currentFolderIdForRecord" value="">
+                    <input type="hidden" id="recordMediaUrl" value="">
+                    <input type="hidden" id="recordMediaType" value="">
+
+                    <!-- Standard Form Fields -->
+                    <div class="add-record-form-grid">
+                        <div class="form-group">
+                            <label class="form-label" id="recordTitleLabel">Record Title *</label>
+                            <input type="text" id="newRecordTitle" class="form-input"
+                                placeholder="e.g. Q1 Growth Checklist, Promo Video" required>
+                        </div>
+                        <div class="form-group" id="recordCategoryGroup">
+                            <label class="form-label">Category Type</label>
+                            <select id="newRecordType" class="form-select">
+                                <option value="NOTE">Quick Note / Task</option>
+                                <option value="REPORT">Analytics Report</option>
+                                <option value="CAMPAIGN">Campaign Milestone</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Media Upload Dropzone & URL Input (shown in Media mode) -->
+                    <div id="folderMediaDropzoneArea" style="display: none; margin-bottom: 14px;">
+                        <input type="file" id="folderMediaFileInput" accept="image/*,video/*" style="display: none;">
+                        <div class="folder-media-dropzone" id="folderMediaDropzone"
+                            style="border: 2px dashed rgba(79, 70, 229, 0.4); border-radius: var(--radius-md); padding: 20px; text-align: center; background: rgba(79, 70, 229, 0.03); cursor: pointer; transition: all 0.2s ease;">
+                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor"
+                                stroke-width="1.8" style="color: var(--primary); margin-bottom: 6px;">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+                                Click to browse Image or Video (or drag & drop file here)
+                            </div>
+                            <span style="font-size: 11px; color: var(--text-muted);">Supports PNG, JPG, WEBP, GIF, MP4,
+                                WebM (Max 50MB)</span>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                            <input type="url" id="folderMediaUrlInput" class="form-input"
+                                placeholder="Or paste public image/video URL directly..."
+                                style="font-size: 12px; padding: 6px 10px;">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnApplyFolderMediaUrl"
+                                style="white-space: nowrap;">Attach Link</button>
+                        </div>
+
+                        <!-- Live Preview Box inside Form -->
+                        <div id="folderMediaPreviewWrapper"
+                            style="display: none; margin-top: 12px; text-align: center; position: relative; background: #000; border-radius: 8px; padding: 8px;">
+                            <img id="folderImgPreview" src="" alt="Image preview"
+                                style="max-height: 160px; max-width: 100%; object-fit: contain; display: none; margin: 0 auto; border-radius: 6px;">
+                            <video id="folderVideoPreview" controls
+                                style="max-height: 160px; max-width: 100%; display: none; margin: 0 auto; border-radius: 6px;"></video>
+                            <div
+                                style="margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span id="folderMediaNameBadge"
+                                    style="font-size: 12px; color: #ffffff; font-weight: 600;"></span>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnRemoveFolderMedia"
+                                    style="padding: 2px 8px; font-size: 11px; color: #ef4444;">âœ• Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Details / Description</label>
+                        <textarea id="newRecordContent" class="form-textarea" rows="2"
+                            placeholder="Key insights, review feedback, or caption notes..."></textarea>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnCancelAddRecord">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btnSaveNewRecord">Save to
+                            Folder</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Scrollable Records List -->
+            <div class="folder-records-list" id="folderRecordsContainer">
+                <!-- Dynamically loaded records -->
+            </div>
+
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button type="button" class="btn btn-secondary" id="btnDeleteCurrentFolder"
+                    style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Delete Folder</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="folderDetailCloseFooterBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Quick File Post into Folder Dialog -->
+    <div class="modal-overlay" id="quickFilePostModal" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 440px;">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title">File into Folder</h3>
+                    <p class="modal-subtitle" id="quickFilePostTitleText">Select destination folder</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="quickFileCloseBtn" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 16px 20px;">
+                <input type="hidden" id="quickFilePostId" value="">
+                <div class="quick-folder-picker-list" id="quickFolderPickerList">
+                    <!-- Populated dynamically with folder list -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="quickFileCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- 4. Add Designer Asset Modal Dialog -->
+    <div class="modal-overlay" id="addDesignerAssetModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title">ðŸŽ¨ Add Designer Asset</h3>
+                    <p class="modal-subtitle">Store mockups, brand assets, and creative designs in Designer Vault</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="closeDesignerModalBtn" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="addDesignerAssetForm">
+                <input type="hidden" id="designerMediaUrlHidden" value="">
+                <input type="hidden" id="designerMediaTypeHidden" value="Image">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="designerAssetTitle">Asset Name / Title <span
+                                class="required-star">*</span></label>
+                        <input type="text" id="designerAssetTitle" class="form-input"
+                            placeholder="e.g. Q1 Promotional Hero Banner, App UI Mockup" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half-col">
+                            <label class="form-label">Asset Category</label>
+                            <select id="designerAssetCategory" class="form-select">
+                                <option value="MOCKUP">UI / Product Mockup</option>
+                                <option value="BANNER">Campaign Hero Banner</option>
+                                <option value="BRAND_KIT">Brand Vector &amp; Palette</option>
+                                <option value="FIGMA_FILE">Figma / Canva Project</option>
+                                <option value="IMAGE">Graphic Artwork</option>
+                            </select>
+                        </div>
+                        <div class="form-group half-col">
+                            <label class="form-label">Status</label>
+                            <select id="designerAssetStatus" class="form-select">
+                                <option value="Approved">Approved</option>
+                                <option value="In Review">In Review</option>
+                                <option value="Ready">Ready to Use</option>
+                                <option value="Draft">Draft / Work in Progress</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="designerAssetSpecs">Specifications / Dimensions</label>
+                        <input type="text" id="designerAssetSpecs" class="form-input"
+                            placeholder="e.g. 1920x1080 16:9 â€¢ Figma Components â€¢ PNG/SVG">
+                    </div>
+
+                    <!-- Visual Media Attachment -->
+                    <div class="form-group">
+                        <label class="form-label">Visual Media / File Preview</label>
+                        <input type="file" id="designerMediaFileInput" accept="image/*,video/*" style="display: none;">
+                        <div class="folder-media-dropzone" id="designerMediaDropzone"
+                            style="border: 2px dashed rgba(236, 72, 153, 0.4); border-radius: var(--radius-md); padding: 18px; text-align: center; background: rgba(236, 72, 153, 0.03); cursor: pointer; transition: all 0.2s ease;">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+                                stroke-width="1.8" style="color: #ec4899; margin-bottom: 4px;">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+                                Click to upload Image or Video (or drag &amp; drop)
+                            </div>
+                            <span style="font-size: 11px; color: var(--text-muted);">Supports PNG, JPG, WEBP, SVG,
+                                MP4</span>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                            <input type="url" id="designerMediaUrlInput" class="form-input"
+                                placeholder="Or paste public Image/Video URL..."
+                                style="font-size: 12px; padding: 6px 10px;">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnApplyDesignerMediaUrl"
+                                style="white-space: nowrap;">Attach Link</button>
+                        </div>
+
+                        <div id="designerPreviewWrapper"
+                            style="display: none; margin-top: 10px; text-align: center; background: #000; border-radius: 8px; padding: 8px;">
+                            <img id="designerImgPreview" src="" alt="Asset preview"
+                                style="max-height: 150px; max-width: 100%; object-fit: contain; display: none; margin: 0 auto; border-radius: 6px;">
+                            <video id="designerVideoPreview" controls
+                                style="max-height: 150px; max-width: 100%; display: none; margin: 0 auto; border-radius: 6px;"></video>
+                            <div
+                                style="margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span id="designerMediaNameBadge"
+                                    style="font-size: 11px; color: #fff; font-weight: 600;"></span>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnRemoveDesignerMedia"
+                                    style="padding: 2px 8px; font-size: 11px; color: #ef4444;">âœ• Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="designerAssetContent">Design Guidelines / Color Codes /
+                            Links</label>
+                        <textarea id="designerAssetContent" class="form-textarea" rows="2"
+                            placeholder="Hex color palette (#4F46E5), Figma file URL, typography specs..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelDesignerModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-designer-accent" id="btnSaveDesignerAsset">Save to
+                        Designer Vault</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. Add Content Creator Draft Modal Dialog -->
+    <div class="modal-overlay" id="addCreatorDraftModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title">New Creator Script / Draft</h3>
+                    <p class="modal-subtitle">Save video scripts, hooks, and campaign copy in Creator Studio</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="closeCreatorModalBtn" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="addCreatorDraftForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="creatorDraftTitle">Draft Title / Topic <span
+                                class="required-star">*</span></label>
+                        <input type="text" id="creatorDraftTitle" class="form-input"
+                            placeholder="e.g. 3 Analytics Metrics That Actually Drive Conversions" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half-col">
+                            <label class="form-label">Content Format</label>
+                            <select id="creatorDraftCategory" class="form-select">
+                                <option value="VIDEO_SCRIPT">Short-Form Reel / TikTok Script</option>
+                                <option value="REEL_HOOK">Viral Opening Hook</option>
+                                <option value="CREATOR_DRAFT">Thought Leadership Copy</option>
+                                <option value="CAMPAIGN_COPY">Promotional Caption</option>
+                            </select>
+                        </div>
+                        <div class="form-group half-col">
+                            <label class="form-label">Status</label>
+                            <select id="creatorDraftStatus" class="form-select">
+                                <option value="Ready to Post">Ready to Post</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Polished">Polished</option>
+                                <option value="Filmed">Filmed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="creatorTargetPlatform">Target Platform &amp; Length</label>
+                        <input type="text" id="creatorTargetPlatform" class="form-input"
+                            placeholder="e.g. Instagram Reels & TikTok â€¢ 45s Duration">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="creatorDraftHook">Opening Hook / Attention Grabber</label>
+                        <input type="text" id="creatorDraftHook" class="form-input"
+                            placeholder="e.g. ðŸŽ£ Stop looking at vanity impressions. Here are 3 numbers to track:">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="creatorDraftContent">Full Script / Caption Body <span
+                                class="required-star">*</span></label>
+                        <textarea id="creatorDraftContent" class="form-textarea" rows="4"
+                            placeholder="Write out the full video outline, talking points, hashtags, or carousel body text..."
+                            required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelCreatorModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-creator-accent" id="btnSaveCreatorDraft">Save to
+                        Creator Studio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast-notification" aria-live="polite"></div>
+
+    <!-- Chart.js self-contained library -->
+    <script th:src="@{/js/chart.umd.min.js}"></script>
+    <!-- Dashboard dynamic interactive scripts -->
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+
+</html>

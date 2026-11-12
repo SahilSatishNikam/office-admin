@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Theme & Color Scheme (Supports Dark / Light Mode) -->
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function() {
+            try {
+                var s = localStorage.getItem('theme') || localStorage.getItem('color-scheme');
+                if (s === 'dark' || (!s && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'dark';
+                } else if (s === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'light';
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <title th:text="${pageTitle != null ? pageTitle : 'Settings'}">Settings &bull; CodeMetric</title>
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body class="dashboard-body">
+
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <div th:replace="~{fragments/sidebar :: sidebar(${activeMenu})}"></div>
+
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            <!-- Top Navigation Bar -->
+            <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+            <!-- Page Content -->
+            <main class="dashboard-content dashboard-main">
+
+                <!-- Page Header -->
+                <div class="dashboard-header" style="margin-bottom: 28px;">
+                    <h1 class="welcome-title">Account &amp; User Authority Settings</h1>
+                    <p class="welcome-subtitle">Manage your login username, password, administrator profile, and workspace users.</p>
+                </div>
+
+                <!-- Alerts Row -->
+                <div th:if="${profileSuccess}" class="alert-banner-success" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); color: #059669; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span th:text="${profileSuccess}">Profile updated successfully.</span>
+                </div>
+                <div th:if="${profileError}" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #dc2626; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span th:text="${profileError}">Profile error.</span>
+                </div>
+
+                <div th:if="${passwordSuccess}" class="alert-banner-success" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); color: #059669; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span th:text="${passwordSuccess}">Password updated successfully.</span>
+                </div>
+                <div th:if="${passwordError}" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #dc2626; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span th:text="${passwordError}">Password error.</span>
+                </div>
+
+                <div th:if="${userCreateSuccess}" class="alert-banner-success" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); color: #059669; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span th:text="${userCreateSuccess}">User created successfully.</span>
+                </div>
+                <div th:if="${userCreateError}" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #dc2626; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span th:text="${userCreateError}">User creation error.</span>
+                </div>
+
+                <div th:if="${userDeleteSuccess}" class="alert-banner-success" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); color: #059669; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span th:text="${userDeleteSuccess}">User deleted successfully.</span>
+                </div>
+                <div th:if="${userDeleteError}" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #dc2626; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span th:text="${userDeleteError}">User deletion error.</span>
+                </div>
+
+                <!-- Two-Column Grid: Profile & Password -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 28px; margin-bottom: 32px;">
+                    
+                    <!-- Card 1: Username & Profile Authority -->
+                    <div class="dashboard-card" style="padding: 28px;">
+                        <div class="card-header" style="margin-bottom: 20px;">
+                            <div>
+                                <h3 class="card-title">My Profile &amp; Login Authority</h3>
+                                <p class="card-desc">Change your sign-in username and personal profile credentials</p>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/settings/profile}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <!-- Login Username -->
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>Sign-in Username</span>
+                                    <span style="font-size: 11px; color: var(--primary); font-weight: 600;">Used to log into dashboard</span>
+                                </label>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-input" name="username" th:value="${user != null ? user.username : userLogin}" required minlength="3" placeholder="e.g. sahil or admin">
+                                </div>
+                            </div>
+
+                            <!-- Full Display Name -->
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-input" name="fullName" th:value="${user != null ? user.fullName : userName}" required placeholder="e.g. Sahil Patel">
+                            </div>
+
+                            <!-- Email Address -->
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-input" name="email" th:value="${user != null ? user.email : userEmail}" required placeholder="e.g. sahil@company.com">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 24px;">
+                                <!-- Role / Job Title -->
+                                <div class="form-group">
+                                    <label class="form-label">Workspace Role</label>
+                                    <input type="text" class="form-input" name="role" th:value="${user != null ? user.role : userRole}" required placeholder="e.g. Administrator">
+                                </div>
+
+                                <!-- Avatar Initials -->
+                                <div class="form-group">
+                                    <label class="form-label">Initials</label>
+                                    <input type="text" class="form-input" name="avatarInitials" maxlength="3" th:value="${user != null ? user.avatarInitials : userInitials}" required style="text-transform: uppercase; font-weight: 700; text-align: center;" placeholder="SP">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                <span>Save Profile &amp; Username</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Card 2: Security & Change Password -->
+                    <div class="dashboard-card" style="padding: 28px;">
+                        <div class="card-header" style="margin-bottom: 20px;">
+                            <div>
+                                <h3 class="card-title">Change Password</h3>
+                                <p class="card-desc">Update your personal password stored securely in MySQL with BCrypt</p>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/settings/password}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label class="form-label">Current Password</label>
+                                <input type="password" class="form-input" name="currentPassword" required placeholder="Enter current password">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label class="form-label">New Password (min 6 characters)</label>
+                                <input type="password" class="form-input" name="newPassword" minlength="6" required placeholder="Enter new strong password">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 24px;">
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-input" name="confirmPassword" minlength="6" required placeholder="Confirm new password">
+                            </div>
+
+                            <button type="submit" class="btn btn-secondary" style="width: 100%; border-color: var(--primary); color: var(--primary); font-weight: 700;">
+                                <span>Update Password</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Card 3: Appearance & Workspace Theme -->
+                    <div class="dashboard-card" style="padding: 28px;">
+                        <div class="card-header" style="margin-bottom: 20px;">
+                            <div>
+                                <h3 class="card-title">Appearance &amp; Theme</h3>
+                                <p class="card-desc">Choose how CodeMetric appears on your device</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-surface); cursor: pointer; transition: all var(--transition-fast);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 20px;">☀️</span>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Light Mode</div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Crisp, clean high-contrast daytime interface</div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="themeSetting" value="light" onchange="setSettingsTheme('light')">
+                            </label>
+
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-surface); cursor: pointer; transition: all var(--transition-fast);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 20px;">🌙</span>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Dark Mode</div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Midnight palette that is easy on the eyes</div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="themeSetting" value="dark" onchange="setSettingsTheme('dark')">
+                            </label>
+
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-surface); cursor: pointer; transition: all var(--transition-fast);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 20px;">💻</span>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">System Auto</div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Automatically match your OS / device preference</div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="themeSetting" value="system" onchange="setSettingsTheme('system')">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Post Reminders & Notifications (Email & SMS/MSG) -->
+                    <div class="dashboard-card" style="padding: 28px;">
+                        <div class="card-header" style="margin-bottom: 20px;">
+                            <div>
+                                <h3 class="card-title">Reminders &amp; Alerts (Email &amp; SMS)</h3>
+                                <p class="card-desc">Receive notifications when posts are scheduled and before publishing</p>
+                            </div>
+                        </div>
+
+                        <div th:if="${notificationSuccess}" style="padding: 12px 16px; background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid #10b981; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 13px; font-weight: 600;">
+                            <span th:text="${notificationSuccess}"></span>
+                        </div>
+
+                        <form th:action="@{/settings/notifications}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label class="form-label">Alert Email Address</label>
+                                <input type="email" class="form-input" name="email" id="alertEmailInput"
+                                       th:value="${user != null ? user.email : 'admin@company.com'}" required>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label class="form-label">Mobile Phone (for SMS / WhatsApp MSG)</label>
+                                <input type="tel" class="form-input" name="phoneNumber" id="alertPhoneInput"
+                                       th:value="${user != null ? user.phoneNumber : '+1 555-0199'}" placeholder="+1 555-0199 or +91 9876543210">
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+                                <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                    <input type="checkbox" name="emailEnabled" value="true"
+                                           th:checked="${user == null or user.emailNotificationsEnabled}">
+                                    <span>📧 Enable Email Confirmation &amp; Upcoming Reminders</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                    <input type="checkbox" name="smsEnabled" value="true"
+                                           th:checked="${user == null or user.smsNotificationsEnabled}">
+                                    <span>📱 Enable Mobile SMS / MSG Alerts</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label class="form-label">Default Reminder Window</label>
+                                <select class="form-select" name="reminderMinutesBefore">
+                                    <option value="15" th:selected="${user == null or user.reminderMinutesBefore == 15}">15 minutes before publication</option>
+                                    <option value="30" th:selected="${user != null and user.reminderMinutesBefore == 30}">30 minutes before publication</option>
+                                    <option value="60" th:selected="${user != null and user.reminderMinutesBefore == 60}">1 hour before publication</option>
+                                </select>
+                            </div>
+
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                                    <span>Save Notification Preferences</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="sendTestAlertBtn" style="white-space: nowrap;" onclick="sendTestAlert()">
+                                    <span>🧪 Test Alert (Email &amp; SMS)</span>
+                                </button>
+                            </div>
+                            <div id="testAlertResult" style="margin-top: 12px; display: none; font-size: 12px; padding: 10px 14px; border-radius: 6px;"></div>
+                        </form>
+                    </div>
+
+                    <script>
+                        function sendTestAlert() {
+                            const btn = document.getElementById('sendTestAlertBtn');
+                            const resBox = document.getElementById('testAlertResult');
+                            const email = document.getElementById('alertEmailInput').value;
+                            const phone = document.getElementById('alertPhoneInput').value;
+                            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+                            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+
+                            btn.disabled = true;
+                            btn.innerText = 'Sending...';
+                            resBox.style.display = 'block';
+                            resBox.style.background = 'rgba(79, 70, 229, 0.1)';
+                            resBox.style.color = 'var(--primary)';
+                            resBox.innerText = 'Dispatching test Email and SMS...';
+
+                            fetch('/api/dashboard/notifications/test', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    [csrfHeader]: csrfToken
+                                },
+                                body: JSON.stringify({ email: email, phone: phone })
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                btn.disabled = false;
+                                btn.innerText = '🧪 Test Alert (Email & SMS)';
+                                resBox.style.background = 'rgba(16, 185, 129, 0.15)';
+                                resBox.style.color = '#10b981';
+                                resBox.innerHTML = '<strong>Success!</strong> ' + (data.message || 'Test alerts dispatched and logged successfully.');
+                            })
+                            .catch(err => {
+                                btn.disabled = false;
+                                btn.innerText = '🧪 Test Alert (Email & SMS)';
+                                resBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                                resBox.style.color = '#ef4444';
+                                resBox.innerText = 'Failed to send test alerts: ' + err;
+                            });
+                        }
+                    </script>
+
+                </div>
+
+                <script>
+                    function updateSettingsThemeRadios() {
+                        var s = localStorage.getItem('theme');
+                        var val = s ? s : 'system';
+                        var r = document.querySelector('input[name="themeSetting"][value="' + val + '"]');
+                        if (r) r.checked = true;
+                    }
+                    function setSettingsTheme(val) {
+                        if (val === 'system') {
+                            localStorage.removeItem('theme');
+                            localStorage.removeItem('color-scheme');
+                            var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                            var m = document.querySelector('meta[name="color-scheme"]');
+                            if (m) m.content = 'light dark';
+                        } else {
+                            localStorage.setItem('theme', val);
+                            localStorage.setItem('color-scheme', val);
+                            document.documentElement.setAttribute('data-theme', val);
+                            var m = document.querySelector('meta[name="color-scheme"]');
+                            if (m) m.content = val;
+                        }
+                        updateSettingsThemeRadios();
+                    }
+                    document.addEventListener('DOMContentLoaded', updateSettingsThemeRadios);
+                </script>
+
+                <!-- Full-Width Card: Workspace Users & Create New User -->
+                <div class="dashboard-card" style="padding: 28px; margin-bottom: 32px;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <h3 class="card-title">Workspace Users</h3>
+                            <p class="card-desc">All registered user accounts with dashboard access</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="const f = document.getElementById('createUserFormCard'); f.style.display = (f.style.display === 'none' ? 'block' : 'none');">
+                            <span>+ Add New User</span>
+                        </button>
+                    </div>
+
+                    <!-- Add New User Form Card (Toggleable) -->
+                    <div id="createUserFormCard" style="display: none; padding: 20px; background: var(--bg-subtle, #f8fafc); border: 1px dashed var(--border-color); border-radius: var(--radius-md); margin-bottom: 24px;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700;">Create New User Account</h4>
+                        <form th:action="@{/settings/users/create}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-input" name="newUsername" required minlength="3" placeholder="e.g. sahil">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-input" name="newPassword" required minlength="6" placeholder="min 6 characters">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-input" name="newFullName" required placeholder="e.g. Sahil Patel">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-input" name="newEmail" required placeholder="e.g. sahil@company.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Role</label>
+                                    <input type="text" class="form-input" name="newRole" value="Administrator" placeholder="e.g. Social Media Manager">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Initials (Optional)</label>
+                                    <input type="text" class="form-input" name="newAvatarInitials" maxlength="3" placeholder="SP" style="text-transform: uppercase;">
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('createUserFormCard').style.display='none';">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Create User Account</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                                    <th style="padding: 12px 16px;">User</th>
+                                    <th style="padding: 12px 16px;">Sign-in Username</th>
+                                    <th style="padding: 12px 16px;">Email</th>
+                                    <th style="padding: 12px 16px;">Role</th>
+                                    <th style="padding: 12px 16px;">Status</th>
+                                    <th style="padding: 12px 16px; text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="u : ${allUsers}" style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 14px 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="user-avatar" style="width: 34px; height: 34px; font-size: 13px; font-weight: 700;" th:text="${u.avatarInitials}">AU</div>
+                                            <strong th:text="${u.fullName}">Admin User</strong>
+                                            <span th:if="${user != null and user.id == u.id}" style="background: rgba(79, 70, 229, 0.1); color: var(--primary); font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700;">You</span>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 14px 16px; font-family: monospace; font-size: 13px; font-weight: 700; color: var(--primary);" th:text="${u.username}">admin</td>
+                                    <td style="padding: 14px 16px; color: var(--text-muted);" th:text="${u.email}">admin@company.com</td>
+                                    <td style="padding: 14px 16px; font-weight: 600;" th:text="${u.role}">Administrator</td>
+                                    <td style="padding: 14px 16px;">
+                                        <span class="status-pill-green" style="font-size: 11px; padding: 3px 8px;">Active</span>
+                                    </td>
+                                    <td style="padding: 14px 16px; text-align: right;">
+                                        <form th:if="${user == null or user.id != u.id}" th:action="@{'/settings/users/' + ${u.id} + '/delete'}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                            <button type="submit" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" title="Delete User">
+                                                Delete
+                                            </button>
+                                        </form>
+                                        <span th:if="${user != null and user.id == u.id}" style="font-size: 12px; color: var(--text-muted);">Current</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Footer -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

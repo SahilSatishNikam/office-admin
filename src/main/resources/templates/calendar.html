@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Theme & Color Scheme (Supports Dark / Light Mode) -->
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function() {
+            try {
+                var s = localStorage.getItem('theme') || localStorage.getItem('color-scheme');
+                if (s === 'dark' || (!s && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'dark';
+                } else if (s === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    var m = document.querySelector('meta[name="color-scheme"]');
+                    if (m) m.content = 'light';
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <title th:text="${pageTitle != null ? pageTitle : 'Content Calendar'}">Content Calendar</title>
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <style>
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        .cal-header-cell {
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .cal-day-cell {
+            min-height: 110px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        .cal-day-cell:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+        .cal-day-cell.today {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.03);
+        }
+        .cal-day-cell.empty {
+            background: transparent;
+            border-color: transparent;
+            cursor: default;
+        }
+        .cal-day-num {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .cal-day-cell.today .cal-day-num {
+            display: inline-block;
+            background: var(--primary);
+            color: #ffffff;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 50%;
+        }
+        .cal-post-chip {
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .chip-linkedin { background: rgba(10, 102, 194, 0.15); color: #0a66c2; border-left: 3px solid #0a66c2; }
+        .chip-instagram { background: rgba(225, 48, 108, 0.15); color: #e1306c; border-left: 3px solid #e1306c; }
+        .chip-twitter { background: rgba(29, 161, 242, 0.15); color: #1da1f2; border-left: 3px solid #1da1f2; }
+        .chip-youtube { background: rgba(255, 0, 0, 0.15); color: #ff0000; border-left: 3px solid #ff0000; }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <div th:replace="~{fragments/sidebar :: sidebar(${activeMenu})}"></div>
+
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            <!-- Top Navigation Bar -->
+            <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+            <!-- Page Content -->
+            <main class="dashboard-content dashboard-main">
+
+                <!-- Page Header with Month Navigation -->
+                <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h1 class="welcome-title" th:text="${monthTitle}">Month Year</h1>
+                        <p class="welcome-subtitle">Live automated publishing queue visualized across your calendar.</p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <!-- Prev / Next Month Controls -->
+                        <div style="display: inline-flex; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-card);">
+                            <a th:href="@{/calendar(year=${prevYear}, month=${prevMonth})}" class="btn-icon-subtle" style="border-radius: 0; padding: 8px 12px;" title="Previous Month">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            </a>
+                            <a th:href="@{/calendar}" class="btn-icon-subtle" style="border-radius: 0; padding: 8px 14px; font-size: 13px; font-weight: 600;" title="Today">Today</a>
+                            <a th:href="@{/calendar(year=${nextYear}, month=${nextMonth})}" class="btn-icon-subtle" style="border-radius: 0; padding: 8px 12px;" title="Next Month">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </a>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" id="createPostBtn" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span>Schedule Post</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calendar Card -->
+                <div class="dashboard-card" style="padding: 24px;">
+                    <!-- Days of Week Header -->
+                    <div class="calendar-grid" style="margin-bottom: 8px;">
+                        <div class="cal-header-cell">Mon</div>
+                        <div class="cal-header-cell">Tue</div>
+                        <div class="cal-header-cell">Wed</div>
+                        <div class="cal-header-cell">Thu</div>
+                        <div class="cal-header-cell">Fri</div>
+                        <div class="cal-header-cell">Sat</div>
+                        <div class="cal-header-cell">Sun</div>
+                    </div>
+
+                    <!-- Days Grid -->
+                    <div class="calendar-grid">
+                        <!-- Leading empty cells -->
+                        <th:block th:if="${leadEmptyDays > 0}">
+                            <div th:each="i : ${#numbers.sequence(1, leadEmptyDays)}" class="cal-day-cell empty"></div>
+                        </th:block>
+
+                        <!-- Days of Month -->
+                        <th:block th:each="day : ${#numbers.sequence(1, daysInMonth)}">
+                            <div class="cal-day-cell" th:classappend="${day == todayDay} ? 'today' : ''" th:data-day="${day}">
+                                <span class="cal-day-num" th:text="${day}">1</span>
+
+                                <!-- Real scheduled posts for this date -->
+                                <th:block th:if="${postsByDay.containsKey(day)}">
+                                    <div th:each="p : ${postsByDay.get(day)}" class="cal-post-chip" th:classappend="'chip-' + ${p.platformClass}" th:title="${p.platform + ': ' + p.caption}">
+                                        <strong th:text="${p.platform}">IG</strong>
+                                        <span th:text="${p.title != null ? p.title : p.caption}">Post</span>
+                                    </div>
+                                </th:block>
+                            </div>
+                        </th:block>
+                    </div>
+
+                    <!-- Empty Queue Notice -->
+                    <div th:if="${totalScheduled == 0}" style="margin-top: 24px; padding: 20px; text-align: center; background: rgba(0,0,0,0.015); border-radius: var(--radius-md); color: var(--text-muted); font-size: 13px;">
+                        No posts scheduled for this month. Click any date or 'Schedule Post' to queue an update.
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Footer -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+        </div>
+    </div>
+
+    <!-- Create/Schedule Post Modal Dialog -->
+    <div class="modal-overlay" id="createPostModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title">Schedule Social Post</h3>
+                    <p class="modal-subtitle">Directly schedule updates to your content calendar</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="12" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="createPostForm">
+                <div class="modal-body">
+                    <div class="channel-select-group">
+                        <label class="form-label">Select Channels</label>
+                        <div class="channel-checkbox-pills">
+                            <label class="channel-check-pill selected">
+                                <input type="checkbox" name="channels" value="Instagram" checked>
+                                <span>Instagram</span>
+                            </label>
+                            <label class="channel-check-pill selected">
+                                <input type="checkbox" name="channels" value="LinkedIn" checked>
+                                <span>LinkedIn</span>
+                            </label>
+                            <label class="channel-check-pill selected">
+                                <input type="checkbox" name="channels" value="Twitter" checked>
+                                <span>X (Twitter)</span>
+                            </label>
+                            <label class="channel-check-pill">
+                                <input type="checkbox" name="channels" value="YouTube">
+                                <span>YouTube</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="postContentInput" class="form-label">Post Caption / Content</label>
+                        <textarea id="postContentInput" name="content" class="form-textarea" rows="4" required placeholder="Write caption to schedule..."></textarea>
+                        <div class="textarea-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                            <span class="char-count" id="charCountSpan">0 / 2,200 chars</span>
+                            <div class="media-quick-add" id="mediaTypeSelectorGroup">
+                                <label class="media-btn active" id="btnMediaImage" title="Attach Image">
+                                    <input type="radio" name="mediaType" value="Single Image" checked style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <span>Image</span>
+                                </label>
+                                <label class="media-btn" id="btnMediaVideo" title="Attach Video">
+                                    <input type="radio" name="mediaType" value="Video" style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                    </svg>
+                                    <span>Video</span>
+                                </label>
+                                <label class="media-btn" id="btnMediaCarousel" title="Carousel format">
+                                    <input type="radio" name="mediaType" value="Document Carousel" style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="2" width="16" height="16" rx="2"></rect>
+                                        <path d="M6 18h12"></path>
+                                        <path d="M6 22h12"></path>
+                                    </svg>
+                                    <span>Carousel</span>
+                                </label>
+                                <label class="media-btn" id="btnMediaText" title="Text only">
+                                    <input type="radio" name="mediaType" value="Text Update" style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="17" y1="10" x2="3" y2="10"></line>
+                                        <line x1="21" y1="6" x2="3" y2="6"></line>
+                                        <line x1="21" y1="14" x2="3" y2="14"></line>
+                                        <line x1="17" y1="18" x2="3" y2="18"></line>
+                                    </svg>
+                                    <span>Text</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Media Attachment Box (Image / Video Upload & Preview) -->
+                        <div id="mediaUploadBox" class="media-upload-container" style="margin-top: 12px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 16px; background: var(--bg-subtle, #f8fafc); transition: all 0.2s;">
+                            <input type="file" id="mediaFileInput" accept="image/*" style="display: none;">
+                            <input type="hidden" id="postMediaUrlInput" name="mediaUrl">
+
+                            <div id="mediaUploadPrompt" style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+                                <div id="mediaUploadIcon" style="color: var(--primary);">
+                                    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                </div>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+                                    <button type="button" class="btn btn-secondary" id="browseMediaBtn" style="padding: 4px 12px; font-size: 12px; margin-right: 6px;">
+                                        ðŸ“ Choose <span id="mediaTypeLabel">Image</span>
+                                    </button>
+                                    or drag &amp; drop file here
+                                </div>
+                                <span style="font-size: 11px; color: var(--text-muted);" id="mediaFormatHint">Supports PNG, JPG, WEBP, GIF (Max 25MB)</span>
+                                
+                                <div style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 420px; margin-top: 6px;">
+                                    <input type="url" id="mediaUrlDirectInput" class="form-input" style="padding: 6px 10px; font-size: 12px;" placeholder="Or paste public image/video URL...">
+                                    <button type="button" class="btn btn-secondary" id="applyMediaUrlBtn" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;">Attach</button>
+                                </div>
+                            </div>
+
+                            <div id="mediaPreviewWrapper" style="display: none; position: relative; text-align: center;">
+                                <img id="imagePreviewElement" src="" alt="Post media preview" style="max-height: 180px; max-width: 100%; border-radius: 8px; object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; margin: 0 auto;">
+                                <video id="videoPreviewElement" controls style="max-height: 180px; max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; margin: 0 auto;"></video>
+                                <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                                    <span id="mediaFileNameBadge" style="font-size: 12px; color: var(--text-muted); font-weight: 600;"></span>
+                                    <button type="button" id="removeMediaBtn" class="btn btn-secondary" style="padding: 4px 12px; font-size: 11px; color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
+                                        âœ• Remove Media
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half-col">
+                            <label class="form-label">Publishing Option</label>
+                            <select class="form-select" id="publishOptionSelect" name="publishOption">
+                                <option value="schedule" selected>Schedule for Later</option>
+                                <option value="now">Publish Immediately</option>
+                                <option value="draft">Save as Draft</option>
+                            </select>
+                        </div>
+                        <div class="form-group half-col" id="scheduleDateTimeGroup">
+                            <label class="form-label">Date & Time</label>
+                            <input type="datetime-local" class="form-input" id="scheduleDateTimeInput" name="scheduledDateTime" required>
+                        </div>
+                    </div>
+
+                    <!-- Reminder Alert Options (Email & SMS/MSG) -->
+                    <div id="scheduleReminderOptionsBox" style="margin-top: 12px; padding: 14px; background: var(--bg-subtle, #f8fafc); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <span>🔔 Post Reminder Alerts</span>
+                            <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">(Email &amp; Mobile MSG)</span>
+                        </div>
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                <input type="checkbox" id="postRemindEmailCheckbox" name="remindEmail" value="true" checked>
+                                <span>📧 Email Reminder</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                <input type="checkbox" id="postRemindSmsCheckbox" name="remindSms" value="true" checked>
+                                <span>📱 SMS / WhatsApp MSG</span>
+                            </label>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Alert Timing</label>
+                                <select class="form-select" id="postReminderTimingSelect" name="reminderMinutesBefore" style="padding: 6px 10px; font-size: 12px;">
+                                    <option value="15" selected>15m before publish</option>
+                                    <option value="30">30m before publish</option>
+                                    <option value="60">1h before publish</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Recipient Phone / Email</label>
+                                <input type="text" class="form-input" id="postRecipientContactInput" placeholder="Default user contact" style="padding: 6px 10px; font-size: 12px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="modalCancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="modalSubmitBtn">
+                        <span>Schedule Post</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast-notification" aria-live="polite"></div>
+
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script>
+        // Clicking on a calendar day pre-selects that date in the schedule modal
+        document.querySelectorAll('.cal-day-cell:not(.empty)').forEach(cell => {
+            cell.addEventListener('click', function() {
+                const day = this.getAttribute('data-day');
+                const year = "[[${currentYear}]]";
+                const month = "[[${currentMonth}]]".padStart(2, '0');
+                const paddedDay = day.padStart(2, '0');
+                const input = document.getElementById('scheduleDateTimeInput');
+                if (input) {
+                    input.value = `${year}-${month}-${paddedDay}T10:00`;
+                }
+                const modal = document.getElementById('createPostModal');
+                if (modal) modal.classList.add('show');
+            });
+        });
+
+        const form = document.getElementById('createPostForm');
+        if (form) {
+            form.addEventListener('submit', function() {
+                setTimeout(() => window.location.reload(), 800);
+            });
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - CodeMetric Social Media DB</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+</head>
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-page); padding: 20px;">
+    <div class="dashboard-card" style="max-width: 480px; width: 100%; text-align: center; padding: 40px 32px;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;" th:text="${status != null ? 'Error ' + status : 'Something went wrong'}">Error</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px;" th:text="${error != null ? error : (message != null ? message : 'The requested page or resource could not be found or processed.')}">An unexpected error occurred.</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a th:href="@{/dashboard}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                <span>Return to Dashboard</span>
+            </a>
+            <a th:href="@{/login}" class="btn btn-secondary">Sign In</a>
+        </div>
+    </div>
+</body>
+</html>
+
