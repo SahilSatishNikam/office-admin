@@ -56,23 +56,23 @@ public class OAuthController {
         if (error != null) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     displayName + " authorization cancelled or failed: " + (error_description != null ? error_description : error));
-            return "redirect:/accounts";
+            return "redirect:/dashboard";
         }
         if (code == null || code.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Missing authorization code from " + displayName + " callback.");
-            return "redirect:/accounts";
+            return "redirect:/dashboard";
         }
 
         try {
             SocialAccount account = oauthService.handleCallback(platform, code);
             redirectAttributes.addFlashAttribute("successMessage",
-                    displayName + " account " + account.getHandle() + " successfully connected via live OAuth 2.0!");
+                    displayName + " account (" + account.getHandle() + ") successfully connected via live OAuth 2.0!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
 
-        return "redirect:/accounts";
+        return "redirect:/dashboard";
     }
 
     private String getDisplayName(String platform) {

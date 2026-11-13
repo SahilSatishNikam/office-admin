@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -230,12 +231,52 @@ public class SocialOAuthService {
             Map<String, Object> tokenRes = restTemplate.postForObject("https://graph.facebook.com/v19.0/oauth/access_token", new HttpEntity<>(body, headers), Map.class);
             String accessToken = tokenRes != null ? (String) tokenRes.get("access_token") : null;
 
-            Map<String, Object> me = restTemplate.getForObject("https://graph.facebook.com/v19.0/me?fields=id,name&access_token=" + accessToken, Map.class);
-            String name = me != null && me.containsKey("name") ? (String) me.get("name") : "Instagram User";
-            String igId = me != null ? String.valueOf(me.get("id")) : "ig_" + System.currentTimeMillis();
-            String handle = "@" + name.toLowerCase().replaceAll("\\s+", "_");
+            String handle = null;
+            String igId = "ig_" + System.currentTimeMillis();
+            Long followers = 0L;
 
-            return saveOAuthAccount("Instagram", handle, "instagram", "#e1306c", 0L, 0.0, 0.0, 0, accessToken, igId);
+            // Attempt to retrieve linked Instagram Business Account details
+            try {
+                Map<String, Object> accountsRes = restTemplate.getForObject(
+                        "https://graph.facebook.com/v19.0/me/accounts?fields=id,name,instagram_business_account{id,username,followers_count}&access_token=" + accessToken,
+                        Map.class);
+                if (accountsRes != null && accountsRes.containsKey("data")) {
+                    List<Map<String, Object>> pages = (List<Map<String, Object>>) accountsRes.get("data");
+                    if (pages != null) {
+                        for (Map<String, Object> page : pages) {
+                            if (page.containsKey("instagram_business_account")) {
+                                Map<String, Object> igAcc = (Map<String, Object>) page.get("instagram_business_account");
+                                if (igAcc != null) {
+                                    if (igAcc.containsKey("username")) {
+                                        handle = "@" + igAcc.get("username");
+                                    }
+                                    if (igAcc.containsKey("id")) {
+                                        igId = String.valueOf(igAcc.get("id"));
+                                    }
+                                    if (igAcc.containsKey("followers_count") && igAcc.get("followers_count") instanceof Number) {
+                                        followers = ((Number) igAcc.get("followers_count")).longValue();
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception igEx) {
+                log.warn("Could not query Instagram business account via me/accounts: {}", igEx.getMessage());
+            }
+
+            // Fallback to Meta user profile
+            if (handle == null) {
+                Map<String, Object> me = restTemplate.getForObject("https://graph.facebook.com/v19.0/me?fields=id,name&access_token=" + accessToken, Map.class);
+                String name = me != null && me.containsKey("name") ? (String) me.get("name") : "Instagram User";
+                if (me != null && me.containsKey("id")) {
+                    igId = String.valueOf(me.get("id"));
+                }
+                handle = "@" + name.toLowerCase().replaceAll("\\s+", "_");
+            }
+
+            return saveOAuthAccount("Instagram", handle, "instagram", "#e1306c", followers, 0.0, 0.0, 0, accessToken, igId);
         } catch (Exception e) {
             log.error("Instagram OAuth failed: {}", e.getMessage(), e);
             throw new RuntimeException("Instagram authentication failed: " + e.getMessage());
@@ -288,11 +329,39 @@ public class SocialOAuthService {
             Map<String, Object> tokenRes = restTemplate.postForObject("https://graph.facebook.com/v19.0/oauth/access_token", new HttpEntity<>(body, headers), Map.class);
             String accessToken = tokenRes != null ? (String) tokenRes.get("access_token") : null;
 
-            Map<String, Object> me = restTemplate.getForObject("https://graph.facebook.com/v19.0/me?fields=id,name&access_token=" + accessToken, Map.class);
-            String name = me != null && me.containsKey("name") ? (String) me.get("name") : "Facebook Page";
-            String id = me != null ? String.valueOf(me.get("id")) : "fb_" + System.currentTimeMillis();
+            String name = null;
+            String id = "fb_" + System.currentTimeMillis();
+            Long followers = 0L;
 
-            return saveOAuthAccount("Facebook", name, "facebook", "#1877f2", 0L, 0.0, 0.0, 0, accessToken, id);
+            // Attempt to retrieve managed Facebook Page details
+            try {
+                Map<String, Object> accountsRes = restTemplate.getForObject(
+                        "https://graph.facebook.com/v19.0/me/accounts?fields=id,name,fan_count,followers_count&access_token=" + accessToken,
+                        Map.class);
+                if (accountsRes != null && accountsRes.containsKey("data")) {
+                    List<Map<String, Object>> pages = (List<Map<String, Object>>) accountsRes.get("data");
+                    if (pages != null && !pages.isEmpty()) {
+                        Map<String, Object> page = pages.get(0);
+                        if (page.containsKey("name")) name = (String) page.get("name");
+                        if (page.containsKey("id")) id = String.valueOf(page.get("id"));
+                        if (page.containsKey("followers_count") && page.get("followers_count") instanceof Number) {
+                            followers = ((Number) page.get("followers_count")).longValue();
+                        } else if (page.containsKey("fan_count") && page.get("fan_count") instanceof Number) {
+                            followers = ((Number) page.get("fan_count")).longValue();
+                        }
+                    }
+                }
+            } catch (Exception pEx) {
+                log.warn("Could not query Facebook Page via me/accounts: {}", pEx.getMessage());
+            }
+
+            if (name == null) {
+                Map<String, Object> me = restTemplate.getForObject("https://graph.facebook.com/v19.0/me?fields=id,name&access_token=" + accessToken, Map.class);
+                name = me != null && me.containsKey("name") ? (String) me.get("name") : "Facebook Page";
+                if (me != null && me.containsKey("id")) id = String.valueOf(me.get("id"));
+            }
+
+            return saveOAuthAccount("Facebook", name, "facebook", "#1877f2", followers, 0.0, 0.0, 0, accessToken, id);
         } catch (Exception e) {
             log.error("Facebook OAuth failed: {}", e.getMessage(), e);
             throw new RuntimeException("Facebook authentication failed: " + e.getMessage());
@@ -368,8 +437,10 @@ public class SocialOAuthService {
         account.setOauthConnected(true);
         account.setAccessToken(accessToken);
         account.setExternalId(externalId);
-        if (account.getFollowersCount() == null || account.getFollowersCount() == 0) {
+        if (followers != null && followers > 0) {
             account.setFollowersCount(followers);
+        } else if (account.getFollowersCount() == null) {
+            account.setFollowersCount(0L);
         }
         if (account.getGrowthRate() == null) account.setGrowthRate(growth);
         if (account.getEngagementRate() == null) account.setEngagementRate(engagement);

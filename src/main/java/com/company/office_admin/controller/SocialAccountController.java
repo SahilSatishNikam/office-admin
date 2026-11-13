@@ -36,7 +36,7 @@ public class SocialAccountController {
                                 RedirectAttributes redirectAttributes) {
         dashboardService.createSocialAccount(platform, handle, followersCount, profileUrl);
         redirectAttributes.addFlashAttribute("successMessage", "Connected real account: " + platform + " (" + handle + ")");
-        return "redirect:/accounts";
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/{id}/toggle")

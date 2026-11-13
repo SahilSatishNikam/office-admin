@@ -57,6 +57,17 @@
             <!-- Dashboard Main Content -->
             <main class="dashboard-content dashboard-main" id="mainContent">
 
+                <!-- Alert Notifications for Social Account Connect -->
+                <div th:if="${successMessage}" class="alert-banner-success" style="margin-bottom: 24px; padding: 14px 20px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); color: #059669; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span th:text="${successMessage}">Account connected successfully.</span>
+                </div>
+
+                <div th:if="${errorMessage}" class="alert-banner-danger" style="margin-bottom: 24px; padding: 14px 20px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #b91c1c; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span th:text="${errorMessage}">Authentication failed.</span>
+                </div>
+
                 <!-- Welcome Banner / Header -->
                 <section class="dashboard-banner">
                     <div class="banner-text-group">
@@ -464,9 +475,15 @@
                 <!-- Connected Channels Dynamic Overview Ribbon (Admin Only) -->
                 <section class="social-channels-bar"
                     th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}">
-                    <div class="channels-bar-header">
-                        <h3 class="channels-bar-title">Connected Accounts</h3>
-                        <span class="channels-status-pill" th:text="${socialAccounts.size()} + ' Connected'">0 Connected</span>
+                    <div class="channels-bar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h3 class="channels-bar-title" style="margin: 0;">Connected Accounts</h3>
+                            <span class="channels-status-pill" th:text="${socialAccounts.size()} + ' Connected'">0 Connected</span>
+                        </div>
+                        <a th:href="@{/accounts}" class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span>+ Connect Account</span>
+                        </a>
                     </div>
                     <div class="channels-grid">
                         <div th:if="${socialAccounts == null or socialAccounts.isEmpty()}" class="empty-state-card"
@@ -506,7 +523,10 @@
                                 </div>
                                 <div class="channel-details">
                                     <div class="channel-name-row">
-                                        <span class="channel-platform" th:text="${account.platform}">Channel</span>
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <span class="channel-platform" th:text="${account.platform}">Channel</span>
+                                            <span th:if="${account.oauthConnected}" style="font-size: 9px; background: rgba(16, 185, 129, 0.15); color: #059669; padding: 1px 6px; border-radius: 999px; font-weight: 700;">Live</span>
+                                        </div>
                                         <span class="channel-growth" th:text="${account.formattedGrowth}">+0.0%</span>
                                     </div>
                                     <div class="channel-handle" th:text="${account.handle}">@handle</div>
