@@ -453,6 +453,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     createPostForm.reset();
                     const charCountSpan = document.getElementById('charCountSpan');
                     if (charCountSpan) charCountSpan.textContent = '0 / 2,200 chars';
+
+                    // Auto-refresh content-driven pages after brief toast notice
+                    const path = window.location.pathname;
+                    if (path.includes('/content') || path.includes('/calendar') || path.includes('/reports') || path.includes('/analytics')) {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 700);
+                    }
                 }
             })
             .catch(err => {
@@ -1043,26 +1051,91 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -------------------------------------------------------------------------
-    // 11. Create Post Modal Controls
+    // 11. Create & Schedule Post Modal Controls (Universal All-Pages Support)
     // -------------------------------------------------------------------------
     const createPostModal = document.getElementById('createPostModal');
-    const createPostBtn = document.getElementById('createPostBtn');
-    const schedulePostBannerBtn = document.getElementById('schedulePostBannerBtn');
-    const quickAddPostBtn = document.getElementById('quickAddPostBtn');
-    const viewFullQueueBtn = document.getElementById('viewFullQueueBtn');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
     const modalCancelBtn = document.getElementById('modalCancelBtn');
     const postContentInput = document.getElementById('postContentInput');
     const charCountSpan = document.getElementById('charCountSpan');
+    const publishOptionSelect = document.getElementById('publishOptionSelect');
+    const scheduleDateTimeGroup = document.getElementById('scheduleDateTimeGroup');
+    const scheduleDateTimeInput = document.getElementById('scheduleDateTimeInput');
+    const scheduleReminderOptionsBox = document.getElementById('scheduleReminderOptionsBox');
+    const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+    const postModalTitle = document.getElementById('postModalTitle');
 
-    function openCreateModal() {
-        if (createPostModal) {
-            createPostModal.classList.add('show');
-            createPostModal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-            if (postContentInput) {
-                setTimeout(() => postContentInput.focus(), 150);
+    function syncPublishOptionUI() {
+        if (!publishOptionSelect) return;
+        const val = publishOptionSelect.value;
+        if (val === 'now') {
+            if (scheduleDateTimeGroup) scheduleDateTimeGroup.style.display = 'none';
+            if (scheduleReminderOptionsBox) scheduleReminderOptionsBox.style.display = 'none';
+            if (scheduleDateTimeInput) scheduleDateTimeInput.required = false;
+            if (modalSubmitBtn) modalSubmitBtn.innerHTML = '<span>Publish Now</span>';
+            if (postModalTitle) postModalTitle.textContent = 'Publish Social Post';
+        } else if (val === 'draft') {
+            if (scheduleDateTimeGroup) scheduleDateTimeGroup.style.display = 'none';
+            if (scheduleReminderOptionsBox) scheduleReminderOptionsBox.style.display = 'none';
+            if (scheduleDateTimeInput) scheduleDateTimeInput.required = false;
+            if (modalSubmitBtn) modalSubmitBtn.innerHTML = '<span>Save Draft</span>';
+            if (postModalTitle) postModalTitle.textContent = 'Save Post Draft';
+        } else {
+            // 'schedule'
+            if (scheduleDateTimeGroup) scheduleDateTimeGroup.style.display = 'block';
+            if (scheduleReminderOptionsBox) scheduleReminderOptionsBox.style.display = 'block';
+            if (scheduleDateTimeInput) scheduleDateTimeInput.required = true;
+            if (modalSubmitBtn) modalSubmitBtn.innerHTML = '<span>Schedule Post</span>';
+            if (postModalTitle) postModalTitle.textContent = 'Schedule Social Post';
+        }
+    }
+
+    if (publishOptionSelect) {
+        publishOptionSelect.addEventListener('change', syncPublishOptionUI);
+    }
+
+    function getDefaultScheduleDateTime() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        d.setHours(10, 0, 0, 0);
+        const pad = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function openCreateModal(presetDateTime = null, mode = null) {
+        if (!createPostModal) {
+            // Fallback to content page if modal not present
+            window.location.href = '/content?create=true';
+            return;
+        }
+
+        // Configure default date/time or preset
+        if (scheduleDateTimeInput) {
+            if (presetDateTime) {
+                scheduleDateTimeInput.value = presetDateTime;
+            } else if (!scheduleDateTimeInput.value) {
+                scheduleDateTimeInput.value = getDefaultScheduleDateTime();
             }
+        }
+
+        // Configure mode
+        if (publishOptionSelect) {
+            if (mode === 'now') {
+                publishOptionSelect.value = 'now';
+            } else if (mode === 'draft') {
+                publishOptionSelect.value = 'draft';
+            } else {
+                publishOptionSelect.value = 'schedule';
+            }
+            syncPublishOptionUI();
+        }
+
+        createPostModal.classList.add('show');
+        createPostModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        if (postContentInput) {
+            setTimeout(() => postContentInput.focus(), 150);
         }
     }
 
@@ -1077,10 +1150,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    if (createPostBtn) createPostBtn.addEventListener('click', openCreateModal);
-    if (schedulePostBannerBtn) schedulePostBannerBtn.addEventListener('click', openCreateModal);
-    if (quickAddPostBtn) quickAddPostBtn.addEventListener('click', openCreateModal);
-    if (viewFullQueueBtn) viewFullQueueBtn.addEventListener('click', openCreateModal);
+    // Expose helpers globally so page-specific inline scripts can trigger cleanly
+    window.openCreatePostModal = openCreateModal;
+    window.closeCreatePostModal = closeCreateModal;
+
+    // Attach listeners to ALL create and schedule buttons across all 7 pages
+    const createPostTriggers = document.querySelectorAll(
+        '#createPostBtn, .create-post-btn, .schedule-post-btn, #schedulePostBannerBtn, #calendarSchedulePostBtn, #contentCreatePostBtn, #contentEmptyCreatePostBtn, #reportsCreatePostBtn, #viewFullQueueBtn, #quickAddPostBtn, [data-action="create-post"], [data-action="schedule-post"]'
+    );
+
+    createPostTriggers.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const btnText = (btn.textContent || '').toLowerCase();
+            const btnId = (btn.id || '').toLowerCase();
+            const isSchedule = btnId.includes('schedule') || 
+                               btn.classList.contains('schedule-post-btn') || 
+                               btnText.includes('schedule') ||
+                               btn.getAttribute('data-action') === 'schedule-post';
+
+            openCreateModal(null, isSchedule ? 'schedule' : 'create');
+        });
+    });
+
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeCreateModal);
     if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeCreateModal);
 
@@ -1090,6 +1182,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeCreateModal();
             }
         });
+    }
+
+    // Check URL parameters (e.g. ?create=true or ?schedule=true)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('create') === 'true' || urlParams.get('schedule') === 'true') {
+        const isSchedule = urlParams.get('schedule') === 'true';
+        setTimeout(() => openCreateModal(null, isSchedule ? 'schedule' : 'create'), 250);
     }
 
     // Live character counter

@@ -18,6 +18,12 @@
         <span class="footer-separator">&bull;</span>
         <a th:href="@{/dashboard}" class="footer-link">Privacy Policy</a>
     </div>
+
+    <!-- Global Toast Notification Container -->
+    <div id="toastNotification" class="toast-notification" aria-live="polite"></div>
+
+    <!-- Global Quick "Create & Schedule Post" Modal Dialog -->
+    <div th:replace="~{fragments/post-modal :: postModal}"></div>
 </footer>
 
 </body>
