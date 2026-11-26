@@ -321,6 +321,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (statComments && stats.totalComments) statComments.textContent = stats.totalComments;
                 if (statShares && stats.totalShares) statShares.textContent = stats.totalShares;
 
+                // Also refresh charts and post lists
+                const activeTimeTab = document.querySelector('#timeframeSelector .time-tab.active');
+                const period = activeTimeTab ? activeTimeTab.getAttribute('data-period') : '30d';
+                fetchFollowerGrowthData(period);
+                if (typeof fetchEngagementData === 'function') fetchEngagementData();
+                fetchRecentPosts();
+                fetchScheduledPosts();
+
                 showToast('Live metrics synchronized successfully!', 'success');
             })
             .catch(err => {
@@ -1062,7 +1070,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const scheduleDateTimeGroup = document.getElementById('scheduleDateTimeGroup');
     const scheduleDateTimeInput = document.getElementById('scheduleDateTimeInput');
     const scheduleReminderOptionsBox = document.getElementById('scheduleReminderOptionsBox');
-    const modalSubmitBtn = document.getElementById('modalSubmitBtn');
     const postModalTitle = document.getElementById('postModalTitle');
 
     function syncPublishOptionUI() {
@@ -1171,6 +1178,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
             openCreateModal(null, isSchedule ? 'schedule' : 'create');
         });
+    });
+
+    // Delegated click listener to guarantee all dynamically rendered buttons work across all pages
+    document.addEventListener('click', function (e) {
+        const trigger = e.target.closest('#createPostBtn, .create-post-btn, .schedule-post-btn, #schedulePostBannerBtn, #calendarSchedulePostBtn, #contentCreatePostBtn, #contentEmptyCreatePostBtn, #reportsCreatePostBtn, #viewFullQueueBtn, #quickAddPostBtn, [data-action="create-post"], [data-action="schedule-post"]');
+        if (trigger) {
+            e.preventDefault();
+            const btnText = (trigger.textContent || '').toLowerCase();
+            const btnId = (trigger.id || '').toLowerCase();
+            const isSchedule = btnId.includes('schedule') || 
+                               trigger.classList.contains('schedule-post-btn') || 
+                               btnText.includes('schedule') ||
+                               trigger.getAttribute('data-action') === 'schedule-post';
+
+            openCreateModal(null, isSchedule ? 'schedule' : 'create');
+        }
     });
 
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeCreateModal);

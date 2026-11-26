@@ -86,7 +86,7 @@
                     </svg>
                     <span class="notification-indicator-badge"
                         th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"
-                        th:text="${unreadNotificationCount}">3</span>
+                        th:text="${unreadNotificationCount}">0</span>
                 </button>
 
                 <!-- Notifications Menu -->
@@ -94,8 +94,7 @@
                     <div class="dropdown-header">
                         <div>
                             <h4 class="dropdown-title">Notifications</h4>
-                            <span class="dropdown-subtitle" th:text="${unreadNotificationCount + ' unread updates'}">3
-                                unread updates</span>
+                            <span class="dropdown-subtitle" th:text="${(unreadNotificationCount != null ? unreadNotificationCount : 0) + ' unread updates'}">0 unread updates</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button type="button" class="mark-read-btn" id="markAllReadBtn" title="Mark all as read">Mark read</button>
@@ -157,10 +156,10 @@
             <div class="dropdown-wrapper" id="profileDropdownWrapper">
                 <button type="button" class="user-profile-btn" id="userProfileBtn" aria-label="User account menu"
                     aria-expanded="false">
-                    <div class="user-avatar" th:text="${userInitials != null ? userInitials : 'SP'}">SP</div>
+                    <div class="user-avatar" th:text="${userInitials != null ? userInitials : 'AD'}">AD</div>
                     <div class="user-info-text">
-                        <span class="user-name" th:text="${userName != null ? userName : 'Shrushti'}">Shrushti</span>
-                        <span class="user-role" th:text="${userRole != null ? userRole : 'Social Media Director'}">Social Media Director</span>
+                        <span class="user-name" th:text="${userName != null ? userName : 'Administrator'}">Administrator</span>
+                        <span class="user-role" th:text="${userRole != null ? userRole : 'Admin'}">Admin</span>
                     </div>
                     <svg class="dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -171,12 +170,12 @@
                 <!-- User Menu with Logout -->
                 <div class="dropdown-menu profile-menu" id="profileMenu">
                     <div class="profile-menu-header">
-                        <div class="user-avatar-lg" th:text="${userInitials != null ? userInitials : 'SP'}">SP</div>
+                        <div class="user-avatar-lg" th:text="${userInitials != null ? userInitials : 'AD'}">AD</div>
                         <div class="profile-header-text">
                             <strong class="profile-header-name"
-                                th:text="${userName != null ? userName : 'Shrushti'}">Shrushti</strong>
+                                th:text="${userName != null ? userName : 'Administrator'}">Administrator</strong>
                             <span class="profile-header-email"
-                                th:text="${userEmail != null ? userEmail : 'shrushti@company.com'}">shrushti@company.com</span>
+                                th:text="${userEmail != null ? userEmail : 'admin@company.com'}">admin@company.com</span>
                         </div>
                     </div>
                     <div class="profile-menu-items">

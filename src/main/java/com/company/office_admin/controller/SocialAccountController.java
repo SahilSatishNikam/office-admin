@@ -33,10 +33,11 @@ public class SocialAccountController {
                                 @RequestParam String handle,
                                 @RequestParam(required = false, defaultValue = "0") Long followersCount,
                                 @RequestParam(required = false) String profileUrl,
+                                @RequestParam(required = false, defaultValue = "/accounts") String returnUrl,
                                 RedirectAttributes redirectAttributes) {
         dashboardService.createSocialAccount(platform, handle, followersCount, profileUrl);
         redirectAttributes.addFlashAttribute("successMessage", "Connected real account: " + platform + " (" + handle + ")");
-        return "redirect:/dashboard";
+        return "redirect:" + (returnUrl.startsWith("/") ? returnUrl : "/accounts");
     }
 
     @PostMapping("/{id}/toggle")
