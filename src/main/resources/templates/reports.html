@@ -192,6 +192,7 @@
                                     <td style="padding: 14px;">
                                         <span th:if="${post.status == 'PUBLISHED'}" class="status-pill-green">PUBLISHED</span>
                                         <span th:if="${post.status == 'SCHEDULED'}" class="badge-pill-amber" style="padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">SCHEDULED</span>
+                                        <span th:if="${post.status == 'IN_REVIEW'}" style="background: rgba(139, 92, 246, 0.18); color: #8b5cf6; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">IN REVIEW</span>
                                         <span th:if="${post.status == 'DRAFT'}" style="background: rgba(148, 163, 184, 0.2); color: #475569; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">DRAFT</span>
                                     </td>
                                     <td style="padding: 14px; color: var(--text-muted);" th:text="${post.status == 'SCHEDULED' ? post.formattedScheduledDate : (post.status == 'PUBLISHED' ? post.formattedPublishedTime : 'Draft')}">Date</td>

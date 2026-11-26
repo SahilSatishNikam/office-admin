@@ -78,6 +78,15 @@ public class DashboardApiController {
         return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Post not found"));
     }
 
+    @PostMapping("/posts/{id}/approve")
+    public ResponseEntity<Map<String, Object>> approvePost(@PathVariable Long id) {
+        boolean success = dashboardService.approvePost(id);
+        if (success) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Post approved and added to queue!"));
+        }
+        return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Post not found"));
+    }
+
     @DeleteMapping("/posts/{id}")
     public ResponseEntity<Map<String, Object>> deletePost(@PathVariable Long id) {
         boolean success = dashboardService.deletePost(id);

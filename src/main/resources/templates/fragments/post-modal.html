@@ -44,7 +44,53 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="postContentInput" class="form-label">Post Caption / Content</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label for="postContentInput" class="form-label" style="margin: 0;">Post Caption / Content</label>
+                        <button type="button" id="btnToggleAiCopilot" class="btn-ai-toggle" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.15)); border: 1px solid rgba(168, 85, 247, 0.35); color: #7c3aed; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <span>✨ AI Copilot</span>
+                        </button>
+                    </div>
+
+                    <!-- Collapsible AI Copilot Generator Box -->
+                    <div id="aiCopilotBox" style="display: none; margin-bottom: 12px; padding: 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(168, 85, 247, 0.05)); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: var(--radius-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12px; font-weight: 700; color: #6366f1; display: inline-flex; align-items: center; gap: 5px;">
+                                <span>✨ AI Caption &amp; Viral Hook Generator</span>
+                            </span>
+                            <span style="font-size: 10px; color: var(--text-muted); font-weight: 600;">Powered by Gemini</span>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <input type="text" id="aiTopicInput" class="form-input" style="flex: 1; padding: 6px 10px; font-size: 12px;" placeholder="Enter topic or brief (e.g. 20% discount on new product launch)...">
+                            <select id="aiToneSelect" class="form-select" style="width: 130px; padding: 6px 8px; font-size: 12px;">
+                                <option value="professional">Professional</option>
+                                <option value="viral" selected>Viral &amp; Hook</option>
+                                <option value="inspiring">Inspiring</option>
+                                <option value="casual">Casual / Fun</option>
+                                <option value="promotional">Promotional</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-primary" id="btnAiGenerateCaption" style="padding: 5px 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span>Generate Caption</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="btnAiSuggestHashtags" style="padding: 5px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                <span>#️⃣ Add Hashtags</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="btnAiViralHooks" style="padding: 5px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                <span>🎯 Viral Hooks</span>
+                            </button>
+                        </div>
+
+                        <!-- AI Suggestions Container -->
+                        <div id="aiSuggestionsWrapper" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(168, 85, 247, 0.25);">
+                            <div id="aiSuggestionsList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                        </div>
+                    </div>
+
                     <textarea id="postContentInput" name="content" class="form-textarea" rows="4" required
                         placeholder="Write your caption or update to share..."></textarea>
                     <div class="textarea-footer">
@@ -105,14 +151,29 @@
                                     <polyline points="21 15 16 10 5 21"></polyline>
                                 </svg>
                             </div>
-                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px;">
                                 <button type="button" class="btn btn-secondary" id="browseMediaBtn"
-                                    style="padding: 4px 12px; font-size: 12px; margin-right: 6px;">
+                                    style="padding: 4px 12px; font-size: 12px;">
                                     Choose <span id="mediaTypeLabel">Image</span>
                                 </button>
-                                or drag &amp; drop file here
+                                <button type="button" class="btn btn-secondary" id="btnPickFromVault"
+                                    style="padding: 4px 12px; font-size: 12px; border-color: rgba(236, 72, 153, 0.4); color: #ec4899;">
+                                    🎨 Vault Asset
+                                </button>
+                                <span style="color: var(--text-muted); font-size: 12px; font-weight: 400;">or drag &amp; drop file here</span>
                             </div>
                             <span style="font-size: 11px; color: var(--text-muted);" id="mediaFormatHint">Supports PNG, JPG, WEBP, GIF (Max 25MB)</span>
+
+                            <!-- Designer Vault Picker Container -->
+                            <div id="vaultAssetPickerBox" style="display: none; width: 100%; margin-top: 10px; padding: 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: left;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 11px; font-weight: 700; color: #ec4899;">Pick from Designer Vault:</span>
+                                    <button type="button" id="btnCloseVaultPicker" style="background: none; border: none; font-size: 16px; cursor: pointer; color: var(--text-muted); line-height: 1;">&times;</button>
+                                </div>
+                                <div id="vaultAssetThumbnails" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; max-height: 140px; overflow-y: auto;">
+                                    <span style="font-size: 11px; color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 10px;">Loading vault assets...</span>
+                                </div>
+                            </div>
 
                             <div style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 420px; margin-top: 6px;">
                                 <input type="url" id="mediaUrlDirectInput" class="form-input"
@@ -146,6 +207,7 @@
                         <select class="form-select" id="publishOptionSelect" name="publishOption">
                             <option value="schedule" selected>Schedule for Later</option>
                             <option value="now">Publish Immediately</option>
+                            <option value="review">Submit for Review (Approval Flow)</option>
                             <option value="draft">Save as Draft</option>
                         </select>
                     </div>

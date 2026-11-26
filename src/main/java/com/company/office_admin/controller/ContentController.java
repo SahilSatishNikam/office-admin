@@ -43,6 +43,15 @@ public class ContentController {
         return "redirect:/content";
     }
 
+    @PostMapping("/{id}/approve")
+    public String approvePost(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        boolean ok = dashboardService.approvePost(id);
+        if (ok) {
+            redirectAttributes.addFlashAttribute("successMessage", "Post approved and placed in publishing queue.");
+        }
+        return "redirect:/content";
+    }
+
     @PostMapping("/{id}/delete")
     public String deletePost(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         boolean ok = dashboardService.deletePost(id);

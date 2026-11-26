@@ -440,6 +440,8 @@ public class DashboardService {
             publishedTime = LocalDateTime.now();
         } else if ("draft".equalsIgnoreCase(option)) {
             status = "DRAFT";
+        } else if ("review".equalsIgnoreCase(option)) {
+            status = "IN_REVIEW";
         } else {
             status = "SCHEDULED";
             if (req.getScheduledDateTime() != null && !req.getScheduledDateTime().trim().isEmpty()) {
@@ -497,6 +499,8 @@ public class DashboardService {
             // Record a live dynamic notification in database
             if ("PUBLISHED".equals(status)) {
                 notificationRepository.save(new Notification("New Post Published", "Your post on " + platform + " is now live.", "trend"));
+            } else if ("IN_REVIEW".equals(status)) {
+                notificationRepository.save(new Notification("Post In Review", "Draft for " + platform + " submitted for admin approval.", "review"));
             } else if ("SCHEDULED".equals(status)) {
                 notificationRepository.save(new Notification("Post Queued", "Post queued for " + platform + " on " + saved.getFormattedScheduledDate(), "schedule"));
                 // Dispatch instant confirmation alert via Email & SMS/MSG
@@ -523,6 +527,28 @@ public class DashboardService {
             postRepository.save(post);
 
             notificationRepository.save(new Notification("Post Published", "Scheduled post on " + post.getPlatform() + " published successfully.", "trend"));
+            return true;
+        }
+        return false;
+    }
+
+    public boolean approvePost(Long id) {
+        Optional<SocialPost> optional = postRepository.findById(id);
+        if (optional.isPresent()) {
+            SocialPost post = optional.get();
+            if (post.getScheduledAt() != null && post.getScheduledAt().isAfter(LocalDateTime.now())) {
+                post.setStatus("SCHEDULED");
+            } else {
+                post.setStatus("PUBLISHED");
+                post.setPublishedAt(LocalDateTime.now());
+                post.setLikesCount(0L);
+                post.setCommentsCount(0L);
+                post.setSharesCount(0L);
+                post.setReachCount(0L);
+                post.setEngagementRate(0.0);
+            }
+            postRepository.save(post);
+            notificationRepository.save(new Notification("Post Approved", "Post for " + post.getPlatform() + " approved and moved to queue.", "milestone"));
             return true;
         }
         return false;

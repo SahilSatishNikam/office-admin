@@ -15,10 +15,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/**")
+            )
+            .httpBasic(org.springframework.security.config.Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/login").permitAll()
                 // Admin-only sections
-                .requestMatchers("/accounts/**", "/oauth2/**", "/analytics/**", "/reports/**", "/settings/**").hasRole("ADMIN")
+                .requestMatchers("/accounts/**", "/channels/**", "/oauth2/**", "/analytics/**", "/reports/**", "/settings/**").hasRole("ADMIN")
                 // Designer access
                 .requestMatchers("/api/folders/designer/**").hasAnyRole("ADMIN", "DESIGNER")
                 // Creator access

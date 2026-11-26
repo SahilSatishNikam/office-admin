@@ -49,4 +49,9 @@ public class DashboardController {
 
         return "dashboard";
     }
+
+    @GetMapping("/channels")
+    public String showChannelsRedirect() {
+        return "redirect:/accounts";
+    }
 }

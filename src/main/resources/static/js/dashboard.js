@@ -1087,6 +1087,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (scheduleDateTimeInput) scheduleDateTimeInput.required = false;
             if (modalSubmitBtn) modalSubmitBtn.innerHTML = '<span>Save Draft</span>';
             if (postModalTitle) postModalTitle.textContent = 'Save Post Draft';
+        } else if (val === 'review') {
+            if (scheduleDateTimeGroup) scheduleDateTimeGroup.style.display = 'none';
+            if (scheduleReminderOptionsBox) scheduleReminderOptionsBox.style.display = 'none';
+            if (scheduleDateTimeInput) scheduleDateTimeInput.required = false;
+            if (modalSubmitBtn) modalSubmitBtn.innerHTML = '<span>Submit for Review</span>';
+            if (postModalTitle) postModalTitle.textContent = 'Submit Post for Approval';
         } else {
             // 'schedule'
             if (scheduleDateTimeGroup) scheduleDateTimeGroup.style.display = 'block';
@@ -3203,7 +3209,327 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // -------------------------------------------------------------------------
+    // AI Copilot & Designer Vault Direct Asset Picker
+    // -------------------------------------------------------------------------
+    function initAiCopilotAndVaultPicker() {
+        const btnToggleAi = document.getElementById('btnToggleAiCopilot');
+        const aiBox = document.getElementById('aiCopilotBox');
+        const aiTopicInput = document.getElementById('aiTopicInput');
+        const aiToneSelect = document.getElementById('aiToneSelect');
+        const btnAiGenerate = document.getElementById('btnAiGenerateCaption');
+        const btnAiHashtags = document.getElementById('btnAiSuggestHashtags');
+        const btnAiHooks = document.getElementById('btnAiViralHooks');
+        const aiSuggestionsWrapper = document.getElementById('aiSuggestionsWrapper');
+        const aiSuggestionsList = document.getElementById('aiSuggestionsList');
+        const postContentInput = document.getElementById('postContentInput');
+
+        // Vault Asset Picker
+        const btnPickFromVault = document.getElementById('btnPickFromVault');
+        const vaultPickerBox = document.getElementById('vaultAssetPickerBox');
+        const btnCloseVaultPicker = document.getElementById('btnCloseVaultPicker');
+        const vaultAssetThumbnails = document.getElementById('vaultAssetThumbnails');
+
+        // 1. Toggle AI Copilot Panel
+        if (btnToggleAi && aiBox) {
+            btnToggleAi.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isHidden = aiBox.style.display === 'none' || !aiBox.style.display;
+                aiBox.style.display = isHidden ? 'block' : 'none';
+                if (isHidden && aiTopicInput) {
+                    if (!aiTopicInput.value && postContentInput && postContentInput.value) {
+                        aiTopicInput.value = postContentInput.value.slice(0, 100);
+                    }
+                    setTimeout(() => aiTopicInput.focus(), 100);
+                }
+            });
+        }
+
+        // Helper: Get selected channel names
+        function getSelectedPlatforms() {
+            const checked = document.querySelectorAll('#createPostForm input[name="channels"]:checked');
+            return Array.from(checked).map(c => c.value);
+        }
+
+        // 2. Generate Caption
+        if (btnAiGenerate && postContentInput) {
+            btnAiGenerate.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const topic = (aiTopicInput && aiTopicInput.value.trim()) || postContentInput.value.trim() || 'Latest updates, product features and company news';
+                const tone = aiToneSelect ? aiToneSelect.value : 'viral';
+                const channels = getSelectedPlatforms();
+                const platform = channels.length > 0 ? channels[0] : 'Instagram';
+
+                const origHtml = btnAiGenerate.innerHTML;
+                btnAiGenerate.disabled = true;
+                btnAiGenerate.innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+                        <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+                        <path d="M12 2a10 10 0 0 1 10 10"></path>
+                    </svg>
+                    <span>Generating...</span>
+                `;
+
+                try {
+                    const res = await fetch('/api/ai/generate', {
+                        method: 'POST',
+                        headers: getCsrfHeaders(),
+                        body: JSON.stringify({
+                            topic: topic,
+                            tone: tone,
+                            platform: platform,
+                            channels: channels,
+                            existingContent: postContentInput.value
+                        })
+                    });
+
+                    if (!res.ok) throw new Error('AI service returned status ' + res.status);
+                    const data = await res.json();
+
+                    if (data && data.caption) {
+                        postContentInput.value = data.caption;
+                        postContentInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+                        // Render variations & hooks if available
+                        if (aiSuggestionsWrapper && aiSuggestionsList) {
+                            aiSuggestionsList.innerHTML = '';
+                            let hasSuggestions = false;
+
+                            if (data.variations && data.variations.length > 0) {
+                                hasSuggestions = true;
+                                const varHeader = document.createElement('div');
+                                varHeader.style.cssText = 'font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;';
+                                varHeader.textContent = '💡 Alternative Variations (click to use):';
+                                aiSuggestionsList.appendChild(varHeader);
+
+                                data.variations.forEach((v, idx) => {
+                                    const vBtn = document.createElement('button');
+                                    vBtn.type = 'button';
+                                    vBtn.className = 'btn-suggestion-pill';
+                                    vBtn.style.cssText = 'text-align: left; padding: 6px 10px; font-size: 11px; border: 1px solid rgba(99, 102, 241, 0.2); background: var(--bg-surface); border-radius: 6px; cursor: pointer; color: var(--text-primary); transition: all 0.15s; margin-bottom: 4px;';
+                                    vBtn.textContent = `Option ${idx + 1}: ${v}`;
+                                    vBtn.addEventListener('click', () => {
+                                        postContentInput.value = v;
+                                        postContentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                        showToast('Applied caption variation #' + (idx + 1), 'info');
+                                    });
+                                    aiSuggestionsList.appendChild(vBtn);
+                                });
+                            }
+
+                            if (data.hashtags && data.hashtags.length > 0) {
+                                hasSuggestions = true;
+                                const hashWrap = document.createElement('div');
+                                hashWrap.style.cssText = 'display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; align-items: center;';
+                                const hashLabel = document.createElement('span');
+                                hashLabel.style.cssText = 'font-size: 11px; font-weight: 700; color: var(--text-muted); margin-right: 4px;';
+                                hashLabel.textContent = 'Suggested:';
+                                hashWrap.appendChild(hashLabel);
+
+                                data.hashtags.forEach(tag => {
+                                    const tagBtn = document.createElement('button');
+                                    tagBtn.type = 'button';
+                                    tagBtn.style.cssText = 'font-size: 11px; padding: 2px 7px; background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 999px; cursor: pointer; font-weight: 600;';
+                                    tagBtn.textContent = tag.startsWith('#') ? tag : '#' + tag;
+                                    tagBtn.addEventListener('click', () => {
+                                        const cleanTag = tag.startsWith('#') ? tag : '#' + tag;
+                                        if (!postContentInput.value.includes(cleanTag)) {
+                                            postContentInput.value = postContentInput.value.trim() + ' ' + cleanTag;
+                                            postContentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                            showToast(`Added ${cleanTag}`, 'info');
+                                        }
+                                    });
+                                    hashWrap.appendChild(tagBtn);
+                                });
+                                aiSuggestionsList.appendChild(hashWrap);
+                            }
+
+                            aiSuggestionsWrapper.style.display = hasSuggestions ? 'block' : 'none';
+                        }
+
+                        showToast('✨ High-converting caption generated by AI!', 'success');
+                    }
+                } catch (err) {
+                    console.error('AI generate error:', err);
+                    showToast('Failed to generate caption. Please try again.', 'error');
+                } finally {
+                    btnAiGenerate.disabled = false;
+                    btnAiGenerate.innerHTML = origHtml;
+                }
+            });
+        }
+
+        // 3. Suggest & Append Hashtags
+        if (btnAiHashtags && postContentInput) {
+            btnAiHashtags.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const topic = (aiTopicInput && aiTopicInput.value.trim()) || postContentInput.value.trim() || 'business and digital marketing';
+                const origHtml = btnAiHashtags.innerHTML;
+                btnAiHashtags.disabled = true;
+                btnAiHashtags.innerHTML = '<span>#️⃣ Adding...</span>';
+
+                try {
+                    const res = await fetch('/api/ai/hashtags', {
+                        method: 'POST',
+                        headers: getCsrfHeaders(),
+                        body: JSON.stringify({
+                            topic: topic,
+                            existingContent: postContentInput.value
+                        })
+                    });
+                    if (!res.ok) throw new Error('Failed to fetch hashtags');
+                    const tags = await res.json();
+                    if (Array.isArray(tags) && tags.length > 0) {
+                        const formatted = tags.map(t => t.startsWith('#') ? t : '#' + t).join(' ');
+                        postContentInput.value = (postContentInput.value.trim() + '\n\n' + formatted).trim();
+                        postContentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        showToast(`Added ${tags.length} trending hashtags!`, 'success');
+                    } else {
+                        showToast('No extra hashtags found for this topic', 'info');
+                    }
+                } catch (err) {
+                    console.error('Hashtag error:', err);
+                    showToast('Failed to add hashtags', 'error');
+                } finally {
+                    btnAiHashtags.disabled = false;
+                    btnAiHashtags.innerHTML = origHtml;
+                }
+            });
+        }
+
+        // 4. Generate Viral Hooks
+        if (btnAiHooks && postContentInput) {
+            btnAiHooks.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const topic = (aiTopicInput && aiTopicInput.value.trim()) || postContentInput.value.trim() || 'growth and tech innovation';
+                const origHtml = btnAiHooks.innerHTML;
+                btnAiHooks.disabled = true;
+                btnAiHooks.innerHTML = '<span>🎯 Hooking...</span>';
+
+                try {
+                    const res = await fetch('/api/ai/hooks', {
+                        method: 'POST',
+                        headers: getCsrfHeaders(),
+                        body: JSON.stringify({ topic: topic, existingContent: postContentInput.value })
+                    });
+                    if (!res.ok) throw new Error('Failed to fetch hooks');
+                    const hooks = await res.json();
+                    if (Array.isArray(hooks) && hooks.length > 0 && aiSuggestionsWrapper && aiSuggestionsList) {
+                        aiSuggestionsList.innerHTML = '';
+                        const hookHeader = document.createElement('div');
+                        hookHeader.style.cssText = 'font-size: 11px; font-weight: 700; color: #7c3aed; margin-bottom: 4px;';
+                        hookHeader.textContent = '🎯 Pick a Viral Opening Hook:';
+                        aiSuggestionsList.appendChild(hookHeader);
+
+                        hooks.forEach((hook, i) => {
+                            const hBtn = document.createElement('button');
+                            hBtn.type = 'button';
+                            hBtn.style.cssText = 'display: block; width: 100%; text-align: left; padding: 6px 10px; font-size: 11px; border: 1px solid rgba(139, 92, 246, 0.3); background: var(--bg-surface); border-radius: 6px; cursor: pointer; color: var(--text-primary); transition: all 0.15s; margin-bottom: 4px; font-weight: 600;';
+                            hBtn.textContent = `Hook #${i + 1}: ${hook}`;
+                            hBtn.addEventListener('click', () => {
+                                postContentInput.value = (hook + '\n\n' + postContentInput.value).trim();
+                                postContentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                showToast('Opening hook added to caption!', 'success');
+                            });
+                            aiSuggestionsList.appendChild(hBtn);
+                        });
+                        aiSuggestionsWrapper.style.display = 'block';
+                        showToast('Viral hooks ready below! Click one to apply.', 'info');
+                    }
+                } catch (err) {
+                    console.error('Hooks error:', err);
+                    showToast('Failed to generate hooks', 'error');
+                } finally {
+                    btnAiHooks.disabled = false;
+                    btnAiHooks.innerHTML = origHtml;
+                }
+            });
+        }
+
+        // 5. Designer Vault Asset Picker
+        if (btnPickFromVault && vaultPickerBox) {
+            btnPickFromVault.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const isHidden = vaultPickerBox.style.display === 'none' || !vaultPickerBox.style.display;
+                vaultPickerBox.style.display = isHidden ? 'block' : 'none';
+
+                if (isHidden && vaultAssetThumbnails) {
+                    vaultAssetThumbnails.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 10px;">Loading assets from Designer Vault...</span>';
+                    try {
+                        const res = await fetch('/api/folders/designer', { headers: getCsrfHeaders() });
+                        if (!res.ok) throw new Error('Failed to fetch vault');
+                        const data = await res.json();
+                        const records = data.records || [];
+
+                        if (records.length === 0) {
+                            vaultAssetThumbnails.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 8px;">No assets in Designer Vault yet. Upload designs in Vault tab!</span>';
+                            return;
+                        }
+
+                        vaultAssetThumbnails.innerHTML = '';
+                        records.forEach(asset => {
+                            const isVid = (asset.mediaType && asset.mediaType.toLowerCase().includes('video')) ||
+                                          (asset.mediaUrl && (asset.mediaUrl.endsWith('.mp4') || asset.mediaUrl.startsWith('data:video')));
+                            const item = document.createElement('div');
+                            item.style.cssText = 'border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow: hidden; cursor: pointer; background: var(--bg-card); transition: transform 0.15s, box-shadow 0.15s; position: relative; display: flex; flex-direction: column;';
+                            item.title = `Click to attach: ${asset.title || 'Asset'}`;
+
+                            item.innerHTML = `
+                                <div style="height: 60px; background: #0f172a; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    ${isVid ?
+                                        `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>` :
+                                        (asset.mediaUrl ? `<img src="${asset.mediaUrl}" alt="${asset.title || 'asset'}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                        `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`)
+                                    }
+                                </div>
+                                <div style="padding: 4px 6px; font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary);">
+                                    ${asset.title || 'Vault Asset'}
+                                </div>
+                            `;
+
+                            item.addEventListener('mouseenter', () => {
+                                item.style.transform = 'translateY(-2px)';
+                                item.style.boxShadow = '0 4px 10px rgba(0,0,0,0.12)';
+                                item.style.borderColor = '#ec4899';
+                            });
+                            item.addEventListener('mouseleave', () => {
+                                item.style.transform = 'none';
+                                item.style.boxShadow = 'none';
+                                item.style.borderColor = 'var(--border-color)';
+                            });
+
+                            item.addEventListener('click', () => {
+                                if (asset.mediaUrl && typeof window.setComposerMedia === 'function') {
+                                    window.setComposerMedia(asset.mediaUrl, asset.title || 'Vault Asset', isVid);
+                                    const directInput = document.getElementById('mediaUrlDirectInput');
+                                    if (directInput) directInput.value = asset.mediaUrl;
+                                    vaultPickerBox.style.display = 'none';
+                                    showToast(`🎨 Attached asset: ${asset.title || 'Designer Asset'}`, 'success');
+                                } else {
+                                    showToast('Asset does not have a direct media URL', 'info');
+                                }
+                            });
+
+                            vaultAssetThumbnails.appendChild(item);
+                        });
+                    } catch (err) {
+                        console.error('Vault picker error:', err);
+                        vaultAssetThumbnails.innerHTML = '<span style="font-size: 11px; color: var(--danger); grid-column: 1/-1; text-align: center; padding: 8px;">Failed to load vault assets</span>';
+                    }
+                }
+            });
+        }
+
+        if (btnCloseVaultPicker && vaultPickerBox) {
+            btnCloseVaultPicker.addEventListener('click', (e) => {
+                e.preventDefault();
+                vaultPickerBox.style.display = 'none';
+            });
+        }
+    }
+
     initDesignerVault();
     initCreatorStudio();
     initThemeToggle();
+    initAiCopilotAndVaultPicker();
 });
