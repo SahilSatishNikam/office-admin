@@ -508,34 +508,6 @@
             transform: translateX(4px);
         }
 
-        /* Quick Credentials Pill */
-        .credentials-pill {
-            margin-top: 24px;
-            background: rgba(241, 245, 249, 0.9);
-            border: 1px dashed #cbd5e1;
-            border-radius: var(--radius-md);
-            padding: 12px 14px;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .credentials-pill:hover {
-            background: rgba(238, 242, 255, 0.9);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .credentials-pill strong {
-            color: var(--text-primary);
-        }
-
-        .credentials-pill:hover strong {
-            color: var(--primary);
-        }
-
         /* Footer Note */
         .login-footer {
             margin-top: 22px;
@@ -675,7 +647,6 @@
                     <input type="checkbox" name="remember-me" id="rememberMe">
                     <span>Keep me signed in</span>
                 </label>
-                <span style="color: var(--text-muted); font-size: 0.82rem;">Default Role: Admin</span>
             </div>
 
             <!-- Submit Button -->
@@ -687,11 +658,6 @@
                 </svg>
             </button>
         </form>
-
-        <!-- Quick Credentials Helper Box (Click to Auto-fill) -->
-        <div class="credentials-pill" id="autoFillCredentials" title="Click to autofill default credentials">
-            <span>Click to autofill: <strong>admin</strong> / <strong>admin123</strong></span>
-        </div>
 
         <!-- Footer Notice -->
         <div class="login-footer">
@@ -707,7 +673,6 @@
             const usernameInput = document.getElementById('usernameInput');
             const togglePasswordBtn = document.getElementById('togglePasswordBtn');
             const eyeIcon = document.getElementById('eyeIcon');
-            const autoFill = document.getElementById('autoFillCredentials');
 
             // Password Show/Hide Toggle
             if (togglePasswordBtn && passwordInput) {
@@ -726,15 +691,6 @@
                             <circle cx="12" cy="12" r="3"></circle>
                         `;
                     }
-                });
-            }
-
-            // Clickable Quick-Autofill Helper
-            if (autoFill && usernameInput && passwordInput) {
-                autoFill.addEventListener('click', function () {
-                    usernameInput.value = 'admin';
-                    passwordInput.value = 'admin123';
-                    passwordInput.focus();
                 });
             }
         });
