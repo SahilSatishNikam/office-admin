@@ -142,39 +142,41 @@
                 </div>
 
                 <!-- Calendar Card -->
-                <div class="dashboard-card" style="padding: 24px;">
-                    <!-- Days of Week Header -->
-                    <div class="calendar-grid" style="margin-bottom: 8px;">
-                        <div class="cal-header-cell">Mon</div>
-                        <div class="cal-header-cell">Tue</div>
-                        <div class="cal-header-cell">Wed</div>
-                        <div class="cal-header-cell">Thu</div>
-                        <div class="cal-header-cell">Fri</div>
-                        <div class="cal-header-cell">Sat</div>
-                        <div class="cal-header-cell">Sun</div>
-                    </div>
+                <div class="dashboard-card calendar-card" style="padding: 24px;">
+                    <div class="calendar-wrapper" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                        <!-- Days of Week Header -->
+                        <div class="calendar-grid" style="margin-bottom: 8px;">
+                            <div class="cal-header-cell">Mon</div>
+                            <div class="cal-header-cell">Tue</div>
+                            <div class="cal-header-cell">Wed</div>
+                            <div class="cal-header-cell">Thu</div>
+                            <div class="cal-header-cell">Fri</div>
+                            <div class="cal-header-cell">Sat</div>
+                            <div class="cal-header-cell">Sun</div>
+                        </div>
 
-                    <!-- Days Grid -->
-                    <div class="calendar-grid">
-                        <!-- Leading empty cells -->
-                        <th:block th:if="${leadEmptyDays > 0}">
-                            <div th:each="i : ${#numbers.sequence(1, leadEmptyDays)}" class="cal-day-cell empty"></div>
-                        </th:block>
+                        <!-- Days Grid -->
+                        <div class="calendar-grid">
+                            <!-- Leading empty cells -->
+                            <th:block th:if="${leadEmptyDays > 0}">
+                                <div th:each="i : ${#numbers.sequence(1, leadEmptyDays)}" class="cal-day-cell empty"></div>
+                            </th:block>
 
-                        <!-- Days of Month -->
-                        <th:block th:each="day : ${#numbers.sequence(1, daysInMonth)}">
-                            <div class="cal-day-cell" th:classappend="${day == todayDay} ? 'today' : ''" th:data-day="${day}">
-                                <span class="cal-day-num" th:text="${day}">1</span>
+                            <!-- Days of Month -->
+                            <th:block th:each="day : ${#numbers.sequence(1, daysInMonth)}">
+                                <div class="cal-day-cell" th:classappend="${day == todayDay} ? 'today' : ''" th:data-day="${day}">
+                                    <span class="cal-day-num" th:text="${day}">1</span>
 
-                                <!-- Real scheduled posts for this date -->
-                                <th:block th:if="${postsByDay.containsKey(day)}">
-                                    <div th:each="p : ${postsByDay.get(day)}" class="cal-post-chip" th:classappend="'chip-' + ${p.platformClass}" th:title="${p.platform + ': ' + p.caption}">
-                                        <strong th:text="${p.platform}">IG</strong>
-                                        <span th:text="${p.title != null ? p.title : p.caption}">Post</span>
-                                    </div>
-                                </th:block>
-                            </div>
-                        </th:block>
+                                    <!-- Real scheduled posts for this date -->
+                                    <th:block th:if="${postsByDay.containsKey(day)}">
+                                        <div th:each="p : ${postsByDay.get(day)}" class="cal-post-chip" th:classappend="'chip-' + ${p.platformClass}" th:title="${p.platform + ': ' + p.caption}">
+                                            <strong th:text="${p.platform}">IG</strong>
+                                            <span th:text="${p.title != null ? p.title : p.caption}">Post</span>
+                                        </div>
+                                    </th:block>
+                                </div>
+                            </th:block>
+                        </div>
                     </div>
 
                     <!-- Empty Queue Notice -->
