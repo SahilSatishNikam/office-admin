@@ -1976,7 +1976,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast(`✓ Filed "${postTitle}" into "${folderName}"!`, 'success');
+                    showToast(`Filed "${postTitle}" into "${folderName}"!`, 'success');
                     await fetchFolders();
                 } else {
                     showToast(data.message || 'Could not file post', 'error');
@@ -2160,7 +2160,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         body: JSON.stringify(payload)
                     });
                     if (!res.ok) throw new Error('Failed to save folder');
-                    showToast(id ? '✓ Folder updated successfully!' : '✓ Folder created successfully!', 'success');
+                    showToast(id ? 'Folder updated successfully!' : 'Folder created successfully!', 'success');
                     closeCreateFolderModal();
                     await fetchFolders();
                 } catch (err) {
@@ -2181,7 +2181,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: getCsrfHeaders()
                 });
                 if (res.ok) {
-                    showToast(`✓ Folder "${folderName}" deleted`, 'success');
+                    showToast(`Folder "${folderName}" deleted`, 'success');
                     closeFolderDetailModal();
                     await fetchFolders();
                 } else {
@@ -2208,7 +2208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 folderDetailBanner.style.background = `linear-gradient(135deg, ${currentActiveFolder.color} 0%, #111827 100%)`;
                 folderDetailTitle.textContent = currentActiveFolder.name;
                 folderDetailDesc.textContent = currentActiveFolder.description || 'Custom collection of dashboard items';
-                folderDetailRecordBadge.innerHTML = `📁 ${currentFolderRecords.length} ${currentFolderRecords.length === 1 ? 'Record' : 'Records'} Archived`;
+                folderDetailRecordBadge.innerHTML = `${currentFolderRecords.length} ${currentFolderRecords.length === 1 ? 'Record' : 'Records'} Archived`;
                 folderDetailIconSlot.innerHTML = getFolderIconSvg(currentActiveFolder.icon);
 
                 // Reset filter & add panel
@@ -2428,7 +2428,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="folder-record-media-actions">
                                 <button type="button" class="btn-use-media-in-post" data-media-url="${rec.mediaUrl}" data-media-type="Video" data-caption="${escapeHtml(rec.title)}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 13 9 20 9"></polyline><polygon points="6 2 18 2 18 6 6 6 6 2"></polygon><line x1="6" y1="18" x2="6.01" y2="18"></line><line x1="18" y1="18" x2="18.01" y2="18"></line></svg>
-                                    <span>🚀 Use in New Post</span>
+                                    <span>Use in New Post</span>
                                 </button>
                             </div>
                         `;
@@ -2440,7 +2440,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="folder-record-media-actions">
                                 <button type="button" class="btn-use-media-in-post" data-media-url="${rec.mediaUrl}" data-media-type="Single Image" data-caption="${escapeHtml(rec.title)}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 13 9 20 9"></polyline><polygon points="6 2 18 2 18 6 6 6 6 2"></polygon><line x1="6" y1="18" x2="6.01" y2="18"></line><line x1="18" y1="18" x2="18.01" y2="18"></line></svg>
-                                    <span>🚀 Use in New Post</span>
+                                    <span>Use in New Post</span>
                                 </button>
                             </div>
                         `;
@@ -2498,7 +2498,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 window.setComposerMedia(mediaUrl, caption, mediaType === 'Video');
                             }
 
-                            showToast('✓ Loaded media from folder into Post Composer!', 'success');
+                            showToast('Loaded media from folder into Post Composer!', 'success');
                         }
                     });
                 }
@@ -2592,11 +2592,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     const savedRecord = await res.json();
                     currentFolderRecords.unshift(savedRecord);
                     renderFolderRecords(currentFolderRecords);
-                    folderDetailRecordBadge.innerHTML = `📁 ${currentFolderRecords.length} ${currentFolderRecords.length === 1 ? 'Record' : 'Records'} Archived`;
+                    folderDetailRecordBadge.innerHTML = `${currentFolderRecords.length} ${currentFolderRecords.length === 1 ? 'Record' : 'Records'} Archived`;
                     addRecordForm.reset();
                     clearFolderMediaPreview();
                     if (addRecordPanel) addRecordPanel.classList.remove('show');
-                    showToast(itemType === 'VIDEO' || itemType === 'IMAGE' ? '✓ Media file saved to folder!' : '✓ Record added to folder', 'success');
+                    showToast(itemType === 'VIDEO' || itemType === 'IMAGE' ? 'Media file saved to folder!' : 'Record added to folder', 'success');
                     await fetchFolders(); // update card counts on dashboard
                 } catch (err) {
                     console.error('Error adding record:', err);
@@ -2615,8 +2615,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (res.ok) {
                     currentFolderRecords = currentFolderRecords.filter(r => r.id !== recordId);
                     renderFolderRecords(currentFolderRecords);
-                    folderDetailRecordBadge.innerHTML = `📁 ${currentFolderRecords.length} ${currentFolderRecords.length === 1 ? 'Record' : 'Records'} Archived`;
-                    showToast(`✓ Removed "${recordTitle}" from folder`, 'success');
+                    folderDetailRecordBadge.innerHTML = `${currentFolderRecords.length} ${currentFolderRecords.length === 1 ? 'Record' : 'Records'} Archived`;
+                    showToast(`Removed "${recordTitle}" from folder`, 'success');
                     await fetchFolders();
                 } else {
                     showToast('Failed to remove record', 'error');
@@ -2662,7 +2662,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showToast(`✓ Exported "${folderName}" records to CSV!`, 'success');
+                showToast(`Exported "${folderName}" records to CSV!`, 'success');
             } catch (err) {
                 console.error('Export error:', err);
                 showToast('Failed to export CSV', 'error');
@@ -2849,7 +2849,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </button>
                                 ` : `
                                     <button type="button" class="btn-copy-script btn-copy-designer-title" data-title="${escapeHtml(item.title)}" title="Copy asset name">
-                                        📋 Copy
+                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>Copy</span>
                                     </button>
                                 `}
                                 <div style="display: flex; gap: 4px;">
@@ -2896,19 +2896,19 @@ document.addEventListener('DOMContentLoaded', function () {
                                 videoPreviewElement.style.display = 'block';
                             }
                             if (imagePreviewElement) imagePreviewElement.style.display = 'none';
-                            if (mediaFileNameBadge) mediaFileNameBadge.textContent = '🎥 Video Asset Loaded';
+                            if (mediaFileNameBadge) mediaFileNameBadge.textContent = 'Video Asset Loaded';
                         } else {
                             if (imagePreviewElement) {
                                 imagePreviewElement.src = mediaUrl;
                                 imagePreviewElement.style.display = 'block';
                             }
                             if (videoPreviewElement) videoPreviewElement.style.display = 'none';
-                            if (mediaFileNameBadge) mediaFileNameBadge.textContent = '🎨 Designer Asset Loaded';
+                            if (mediaFileNameBadge) mediaFileNameBadge.textContent = 'Designer Asset Loaded';
                         }
 
                         createPostModal.classList.add('show');
                         createPostModal.setAttribute('aria-hidden', 'false');
-                        showToast(`✓ Designer asset loaded into post composer!`, 'success');
+                        showToast('Designer asset loaded into post composer!', 'success');
                     }
                 });
             });
@@ -2916,7 +2916,7 @@ document.addEventListener('DOMContentLoaded', function () {
             designerAssetsGrid.querySelectorAll('.btn-copy-designer-title').forEach(btn => {
                 btn.addEventListener('click', () => {
                     navigator.clipboard.writeText(btn.dataset.title).then(() => {
-                        showToast('✓ Asset name copied to clipboard!', 'success');
+                        showToast('Asset name copied to clipboard!', 'success');
                     });
                 });
             });
@@ -2924,7 +2924,7 @@ document.addEventListener('DOMContentLoaded', function () {
             designerAssetsGrid.querySelectorAll('.btn-copy-media-link').forEach(btn => {
                 btn.addEventListener('click', () => {
                     navigator.clipboard.writeText(btn.dataset.url).then(() => {
-                        showToast('✓ Media link copied to clipboard!', 'success');
+                        showToast('Media link copied to clipboard!', 'success');
                     }).catch(() => {
                         showToast('Failed to copy link', 'error');
                     });
@@ -3128,7 +3128,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
 
                     if (res.ok) {
-                        showToast(`✓ Asset "${title}" saved to Designer Vault!`, 'success');
+                        showToast(`Asset "${title}" saved to Designer Vault!`, 'success');
                         closeDesignerModal();
                         addDesignerAssetForm.reset();
                         fetchDesignerAssets();
@@ -3228,8 +3228,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <span>Convert to Post</span>
                             </button>
                             <div style="display: flex; gap: 6px;">
-                                <button type="button" class="btn-copy-script btn-copy-creator-text" data-text="${escapeHtml(item.content || item.title)}" title="Copy script to clipboard">
-                                    📋 Copy Script
+                                <button type="button" class="btn-copy-script btn-copy-creator-text" data-text="${escapeHtml(item.content || item.title)}" title="Copy script to clipboard" style="display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>Copy Script</span>
                                 </button>
                                 <button type="button" class="btn-icon-subtle btn-delete-creator-draft" data-id="${item.id}" title="Delete draft">
                                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="12" x2="18" y2="18"></line></svg>
@@ -3256,7 +3256,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         createPostModal.classList.add('show');
                         createPostModal.setAttribute('aria-hidden', 'false');
-                        showToast(`✓ Creator script loaded into Post Composer!`, 'success');
+                        showToast('Creator script loaded into Post Composer!', 'success');
                     }
                 });
             });
@@ -3264,7 +3264,7 @@ document.addEventListener('DOMContentLoaded', function () {
             creatorDraftsList.querySelectorAll('.btn-copy-creator-text').forEach(btn => {
                 btn.addEventListener('click', () => {
                     navigator.clipboard.writeText(btn.dataset.text).then(() => {
-                        showToast('✓ Creator script copied to clipboard!', 'success');
+                        showToast('Creator script copied to clipboard!', 'success');
                     }).catch(() => {
                         showToast('Failed to copy script', 'error');
                     });
@@ -3372,7 +3372,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
 
                     if (res.ok) {
-                        showToast(`✓ Script "${title}" saved to Creator Studio!`, 'success');
+                        showToast(`Script "${title}" saved to Creator Studio!`, 'success');
                         closeCreatorModal();
                         addCreatorDraftForm.reset();
                         fetchCreatorDrafts();
@@ -3427,7 +3427,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (showNotification && typeof showToast === 'function') {
-                showToast(theme === 'dark' ? '🌙 Dark mode activated' : '☀️ Light mode activated', 'info');
+                showToast(theme === 'dark' ? 'Dark mode activated' : 'Light mode activated', 'info');
             }
         }
 
@@ -3551,7 +3551,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 hasSuggestions = true;
                                 const varHeader = document.createElement('div');
                                 varHeader.style.cssText = 'font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;';
-                                varHeader.textContent = '💡 Alternative Variations (click to use):';
+                                varHeader.textContent = 'Alternative Variations (click to use):';
                                 aiSuggestionsList.appendChild(varHeader);
 
                                 data.variations.forEach((v, idx) => {
@@ -3599,7 +3599,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             aiSuggestionsWrapper.style.display = hasSuggestions ? 'block' : 'none';
                         }
 
-                        showToast('✨ High-converting caption generated by AI!', 'success');
+                        showToast('High-converting caption generated by AI!', 'success');
                     }
                 } catch (err) {
                     console.error('AI generate error:', err);
@@ -3618,7 +3618,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const topic = (aiTopicInput && aiTopicInput.value.trim()) || postContentInput.value.trim() || 'business and digital marketing';
                 const origHtml = btnAiHashtags.innerHTML;
                 btnAiHashtags.disabled = true;
-                btnAiHashtags.innerHTML = '<span>#️⃣ Adding...</span>';
+                btnAiHashtags.innerHTML = '<span>Adding...</span>';
 
                 try {
                     const res = await fetch('/api/ai/hashtags', {
@@ -3656,7 +3656,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const topic = (aiTopicInput && aiTopicInput.value.trim()) || postContentInput.value.trim() || 'growth and tech innovation';
                 const origHtml = btnAiHooks.innerHTML;
                 btnAiHooks.disabled = true;
-                btnAiHooks.innerHTML = '<span>🎯 Hooking...</span>';
+                btnAiHooks.innerHTML = '<span>Hooking...</span>';
 
                 try {
                     const res = await fetch('/api/ai/hooks', {
@@ -3670,7 +3670,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         aiSuggestionsList.innerHTML = '';
                         const hookHeader = document.createElement('div');
                         hookHeader.style.cssText = 'font-size: 11px; font-weight: 700; color: #7c3aed; margin-bottom: 4px;';
-                        hookHeader.textContent = '🎯 Pick a Viral Opening Hook:';
+                        hookHeader.textContent = 'Pick a Viral Opening Hook:';
                         aiSuggestionsList.appendChild(hookHeader);
 
                         hooks.forEach((hook, i) => {
@@ -3756,7 +3756,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     const directInput = document.getElementById('mediaUrlDirectInput');
                                     if (directInput) directInput.value = asset.mediaUrl;
                                     vaultPickerBox.style.display = 'none';
-                                    showToast(`🎨 Attached asset: ${asset.title || 'Designer Asset'}`, 'success');
+                                    showToast(`Attached asset: ${asset.title || 'Designer Asset'}`, 'success');
                                 } else {
                                     showToast('Asset does not have a direct media URL', 'info');
                                 }

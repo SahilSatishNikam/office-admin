@@ -237,8 +237,11 @@
                                             <input type="hidden" th:name="${_csrf.parameterName}"
                                                 th:value="${_csrf.token}" />
                                             <button type="submit" class="btn btn-primary"
-                                                style="padding: 6px 12px; font-size: 12px; background: #8b5cf6; border-color: #8b5cf6;" title="Approve Post">
-                                                ✓ Approve
+                                                style="padding: 6px 12px; font-size: 12px; background: #8b5cf6; border-color: #8b5cf6; display: inline-flex; align-items: center; gap: 5px;" title="Approve Post">
+                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                                <span>Approve</span>
                                             </button>
                                         </form>
 
