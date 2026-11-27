@@ -441,6 +441,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             const newPostRow = createRecentPostRowHtml(post);
                             recentPostsContainer.insertAdjacentHTML('afterbegin', newPostRow);
                         });
+                        bindAllRecentPostActions();
+                        const recentBadge = document.getElementById('recentPostsCountBadge');
+                        const totalRows = recentPostsContainer.querySelectorAll('.post-item-row');
+                        if (recentBadge) recentBadge.textContent = totalRows.length;
                     }
 
                     // Update live metric counts
@@ -482,46 +486,89 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Helper: Build HTML for newly added Scheduled Post Card
+    // Helper: Platform SVG Icon Generator
+    function getPlatformIconSvg(platformClass) {
+        const p = (platformClass || '').toLowerCase();
+        if (p === 'linkedin') {
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+            </svg>`;
+        } else if (p === 'instagram') {
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>`;
+        } else if (p === 'twitter') {
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+            </svg>`;
+        } else if (p === 'youtube') {
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+            </svg>`;
+        }
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"></circle></svg>`;
+    }
+
+    // Helper: Build HTML for Scheduled Post Card
     function createScheduledPostCardHtml(post) {
+        const platformClass = (post.platformClass || (post.platform ? post.platform.toLowerCase() : 'instagram'));
+        const handle = post.accountHandle || (post.account ? post.account.handle : '@codemetric');
+        const countdown = post.countdown || 'Scheduled';
+        const formattedDate = post.formattedScheduledDate || 'Upcoming';
+        const mediaType = post.mediaType || 'Image';
+        const isVideo = (mediaType.toLowerCase().includes('video') || (post.mediaUrl && (post.mediaUrl.startsWith('data:video') || post.mediaUrl.includes('.mp4'))));
+
         return `
-            <div class="scheduled-item-card" id="scheduled-card-${post.id}">
+            <div class="scheduled-item-card draggable-post-item" id="scheduled-card-${post.id}" draggable="true" data-post-id="${post.id}" data-post-title="${escapeHtml(post.title || '')}">
                 <div class="scheduled-top-row">
                     <div class="scheduled-platform-info">
-                        <div class="mini-platform-icon icon-${post.platformClass}">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                                <circle cx="12" cy="12" r="10"></circle>
+                        <span class="post-drag-handle" title="Drag to folder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                <circle cx="9" cy="6" r="1.5"></circle><circle cx="15" cy="6" r="1.5"></circle>
+                                <circle cx="9" cy="12" r="1.5"></circle><circle cx="15" cy="12" r="1.5"></circle>
+                                <circle cx="9" cy="18" r="1.5"></circle><circle cx="15" cy="18" r="1.5"></circle>
                             </svg>
+                        </span>
+                        <div class="mini-platform-icon icon-${platformClass}">
+                            ${getPlatformIconSvg(platformClass)}
                         </div>
-                        <span class="scheduled-handle">${escapeHtml(post.accountHandle || '@codemetric')}</span>
+                        <span class="scheduled-handle">${escapeHtml(handle)}</span>
                     </div>
                     <div class="scheduled-countdown-pill status-scheduled">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
-                        <span>Scheduled</span>
+                        <span>${escapeHtml(countdown)}</span>
                     </div>
                 </div>
-                <p class="scheduled-caption">${escapeHtml(post.caption)}</p>
+                <p class="scheduled-caption">${escapeHtml(post.caption || post.title || '')}</p>
                 ${post.mediaUrl ? `
                     <div style="margin: 8px 0; border-radius: var(--radius-sm); overflow: hidden; max-height: 120px; background: #000;">
-                        ${(post.mediaType && post.mediaType.toLowerCase().includes('video')) || post.mediaUrl.startsWith('data:video') || post.mediaUrl.includes('.mp4') ?
+                        ${isVideo ?
                             `<video src="${escapeHtml(post.mediaUrl)}" controls style="width: 100%; max-height: 120px; object-fit: cover; display: block;"></video>` :
                             `<img src="${escapeHtml(post.mediaUrl)}" alt="Attached media" style="width: 100%; height: 120px; object-fit: cover; display: block;">`}
                     </div>
                 ` : ''}
                 <div class="scheduled-bottom-row">
                     <div class="scheduled-meta">
-                        <span class="scheduled-date-badge">${escapeHtml(post.formattedScheduledDate || 'Scheduled')}</span>
-                        <span class="scheduled-format">${escapeHtml(post.mediaType || 'Image')}</span>
+                        <span class="scheduled-date-badge">${escapeHtml(formattedDate)}</span>
+                        <span class="scheduled-format">${escapeHtml(mediaType)}</span>
                     </div>
                     <div class="scheduled-actions">
+                        <button type="button" class="btn-icon-subtle action-file-post-btn" data-id="${post.id}" data-title="${escapeHtml(post.title || '')}" title="File into Custom Folder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                        </button>
                         <button type="button" class="btn-icon-subtle action-publish-now" data-id="${post.id}" title="Publish immediately">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </button>
                         <button type="button" class="btn-icon-subtle action-delete-post" data-id="${post.id}" title="Remove from queue">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="6"></line></svg>
                         </button>
                     </div>
                 </div>
@@ -529,45 +576,84 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
     }
 
-    // Helper: Build HTML for newly added Recent Post Row
+    // Helper: Build HTML for Recent Post Row
     function createRecentPostRowHtml(post) {
+        const platformClass = (post.platformClass || (post.platform ? post.platform.toLowerCase() : 'instagram'));
+        const timeText = post.formattedPublishedTime || 'Just now';
+        const mediaType = post.mediaType || 'Update';
+        const isVideo = (mediaType.toLowerCase().includes('video') || (post.mediaUrl && (post.mediaUrl.startsWith('data:video') || post.mediaUrl.includes('.mp4'))));
+        const formattedLikes = post.formattedLikes || (post.likesCount ? new Intl.NumberFormat().format(post.likesCount) : '0');
+        const formattedComments = post.formattedComments || (post.commentsCount ? new Intl.NumberFormat().format(post.commentsCount) : '0');
+        const formattedShares = post.formattedShares || (post.sharesCount ? new Intl.NumberFormat().format(post.sharesCount) : '0');
+        const engRate = post.engagementRate ? post.engagementRate + '%' : '0.0%';
+
         return `
-            <div class="post-item-row" data-platform="${post.platformClass}" id="post-row-${post.id}">
-                <div class="post-platform-badge badge-${post.platformClass}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="19" height="19">
-                        <circle cx="12" cy="12" r="10"></circle>
+            <div class="post-item-row draggable-post-item" data-platform="${platformClass}" id="post-row-${post.id}" draggable="true" data-post-id="${post.id}" data-post-title="${escapeHtml(post.title || '')}">
+                <span class="post-drag-handle" title="Drag to folder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <circle cx="9" cy="6" r="1.5"></circle><circle cx="15" cy="6" r="1.5"></circle>
+                        <circle cx="9" cy="12" r="1.5"></circle><circle cx="15" cy="12" r="1.5"></circle>
+                        <circle cx="9" cy="18" r="1.5"></circle><circle cx="15" cy="18" r="1.5"></circle>
                     </svg>
+                </span>
+                <div class="post-platform-badge badge-${platformClass}">
+                    ${getPlatformIconSvg(platformClass)}
                 </div>
                 <div class="post-main-content">
                     <div class="post-header-line">
-                        <h4 class="post-title">${escapeHtml(post.title)}</h4>
-                        <span class="post-time">Just now</span>
+                        <h4 class="post-title">${escapeHtml(post.title || 'Untitled Post')}</h4>
+                        <span class="post-time">${escapeHtml(timeText)}</span>
                     </div>
-                    <p class="post-caption">${escapeHtml(post.caption)}</p>
+                    <p class="post-caption">${escapeHtml(post.caption || '')}</p>
                     ${post.mediaUrl ? `
                         <div style="margin: 8px 0; max-width: 280px; border-radius: var(--radius-sm); overflow: hidden; background: #000;">
-                            ${(post.mediaType && post.mediaType.toLowerCase().includes('video')) || post.mediaUrl.startsWith('data:video') || post.mediaUrl.includes('.mp4') ?
+                            ${isVideo ?
                                 `<video src="${escapeHtml(post.mediaUrl)}" controls style="width: 100%; max-height: 140px; object-fit: cover; display: block;"></video>` :
                                 `<img src="${escapeHtml(post.mediaUrl)}" alt="Attached media" style="width: 100%; max-height: 140px; object-fit: cover; display: block;">`}
                         </div>
                     ` : ''}
                     <div class="post-tags-row">
-                        <span class="media-tag">${escapeHtml(post.mediaType || 'Update')}</span>
+                        <span class="media-tag">${escapeHtml(mediaType)}</span>
                         <span class="status-pill-green">PUBLISHED</span>
                     </div>
                 </div>
                 <div class="post-metrics-cluster">
                     <div class="stat-cell" title="Likes">
-                        <span class="stat-num">${post.formattedLikes || (post.likesCount ? new Intl.NumberFormat().format(post.likesCount) : '0')}</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                        <span class="stat-num">${formattedLikes}</span>
                     </div>
                     <div class="stat-cell" title="Comments">
-                        <span class="stat-num">${post.formattedComments || (post.commentsCount ? new Intl.NumberFormat().format(post.commentsCount) : '0')}</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span class="stat-num">${formattedComments}</span>
                     </div>
                     <div class="stat-cell" title="Shares">
-                        <span class="stat-num">${post.formattedShares || (post.sharesCount ? new Intl.NumberFormat().format(post.sharesCount) : '0')}</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span class="stat-num">${formattedShares}</span>
                     </div>
                     <div class="stat-cell engagement-pill-cell" title="Engagement Rate">
-                        <span class="eng-rate-badge">${post.engagementRate ? post.engagementRate + '%' : '0.0%'}</span>
+                        <span class="eng-rate-badge">${engRate}</span>
+                    </div>
+                    <div class="stat-cell" title="File into Folder">
+                        <button type="button" class="btn-icon-subtle action-file-post-btn" data-id="${post.id}" data-title="${escapeHtml(post.title || '')}" title="File into Custom Folder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="stat-cell" title="Delete Post">
+                        <button type="button" class="btn-icon-subtle action-delete-post" data-id="${post.id}" title="Delete post">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="6"></line>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -581,6 +667,89 @@ document.addEventListener('DOMContentLoaded', function () {
         return div.innerHTML;
     }
 
+    // Helper: Empty State HTML Generator for Recent Posts
+    function renderRecentPostsEmptyState(message) {
+        const container = document.getElementById('recentPostsContainer');
+        if (!container) return;
+        const msg = message || 'No Published Posts Yet';
+        container.innerHTML = `
+            <div class="empty-state-card" style="padding: 36px 20px; text-align: center; color: var(--text-muted); border: 1.5px dashed var(--border-color); border-radius: var(--radius-lg); background: var(--bg-subtle, rgba(241,245,249,0.5));">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-surface); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: var(--shadow-xs); border: 1px solid var(--border-color); color: var(--primary);">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </div>
+                <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">${escapeHtml(msg)}</h4>
+                <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted); max-width: 280px; margin-inline: auto;">Compose and publish updates across your connected accounts to see performance metrics here.</p>
+                <button type="button" class="btn btn-primary create-post-btn" style="padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin: 0 auto;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Create Post</span>
+                </button>
+            </div>
+        `;
+    }
+
+    // Bind action buttons on Recent Post rows (Delete, File into Folder)
+    function bindRecentPostRowActions(row) {
+        if (!row || row.dataset.actionsBound) return;
+        row.dataset.actionsBound = 'true';
+
+        const deleteBtn = row.querySelector('.action-delete-post');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const id = this.getAttribute('data-id');
+                if (!confirm('Are you sure you want to permanently delete this post?')) return;
+
+                fetch(`/api/dashboard/posts/${id}`, {
+                    method: 'DELETE',
+                    headers: getCsrfHeaders()
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        showToast('Post deleted successfully.', 'success');
+                        row.style.transition = 'all 0.25s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(20px)';
+                        setTimeout(() => {
+                            row.remove();
+                            const remaining = document.querySelectorAll('#recentPostsContainer .post-item-row:not(.hidden)');
+                            const countBadge = document.getElementById('recentPostsCountBadge');
+                            if (countBadge) countBadge.textContent = remaining.length;
+                            if (remaining.length === 0) {
+                                renderRecentPostsEmptyState();
+                            }
+                            syncLiveStats();
+                        }, 250);
+                    } else {
+                        showToast('Failed to delete post.', 'error');
+                    }
+                })
+                .catch(() => showToast('Failed to delete post.', 'error'));
+            });
+        }
+
+        const fileBtn = row.querySelector('.action-file-post-btn');
+        if (fileBtn) {
+            fileBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const postId = this.getAttribute('data-id');
+                const postTitle = this.getAttribute('data-title');
+                if (typeof openFilePostModal === 'function') {
+                    openFilePostModal(postId, postTitle);
+                }
+            });
+        }
+    }
+
+    function bindAllRecentPostActions() {
+        document.querySelectorAll('#recentPostsContainer .post-item-row').forEach(row => {
+            bindRecentPostRowActions(row);
+        });
+    }
+
     // -------------------------------------------------------------------------
     // 5. Actions: Quick Publish Now & Delete Post
     // -------------------------------------------------------------------------
@@ -592,6 +761,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (publishBtn) {
             publishBtn.addEventListener('click', function () {
                 const id = this.getAttribute('data-id');
+                publishBtn.disabled = true;
                 fetch(`/api/dashboard/posts/${id}/publish`, {
                     method: 'POST',
                     headers: getCsrfHeaders()
@@ -600,11 +770,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(res => {
                     if (res.success) {
                         showToast('Post published live to feed!', 'success');
-                        card.remove();
-                        syncLiveStats();
+                        card.style.transition = 'all 0.25s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            card.remove();
+                            const remaining = document.querySelectorAll('#scheduledItemsContainer .scheduled-item-card');
+                            const badge = document.getElementById('scheduledBadgeCount');
+                            if (badge) badge.textContent = `${remaining.length} Queued`;
+                            if (remaining.length === 0) {
+                                fetchScheduledPosts();
+                            }
+                            fetchRecentPosts();
+                            syncLiveStats();
+                        }, 250);
+                    } else {
+                        showToast('Failed to publish post: ' + (res.message || ''), 'error');
+                        publishBtn.disabled = false;
                     }
                 })
-                .catch(() => showToast('Failed to publish post.', 'error'));
+                .catch(() => {
+                    showToast('Failed to publish post.', 'error');
+                    publishBtn.disabled = false;
+                });
             });
         }
 
@@ -622,8 +810,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(res => {
                     if (res.success) {
                         showToast('Post removed from queue.', 'success');
-                        card.remove();
-                        syncLiveStats();
+                        card.style.transition = 'all 0.25s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            card.remove();
+                            const remaining = document.querySelectorAll('#scheduledItemsContainer .scheduled-item-card');
+                            const badge = document.getElementById('scheduledBadgeCount');
+                            if (badge) badge.textContent = `${remaining.length} Queued`;
+                            if (remaining.length === 0) {
+                                fetchScheduledPosts();
+                            }
+                            syncLiveStats();
+                        }, 250);
+                    } else {
+                        showToast('Failed to delete post.', 'error');
                     }
                 })
                 .catch(() => showToast('Failed to delete post.', 'error'));
@@ -631,33 +832,84 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Bind existing scheduled action buttons
+    // Dynamic Fetch for Recent Posts
+    function fetchRecentPosts(platformFilter) {
+        const filter = platformFilter || (document.querySelector('#recentPostsFilter .filter-pill.active')?.getAttribute('data-filter') || 'all');
+        const recentContainer = document.getElementById('recentPostsContainer');
+        const badge = document.getElementById('recentPostsCountBadge');
+        if (!recentContainer) return Promise.resolve();
+
+        return fetch(`/api/dashboard/posts/recent?platform=${encodeURIComponent(filter)}`)
+            .then(res => res.json())
+            .then(posts => {
+                if (badge) badge.textContent = posts ? posts.length : 0;
+                if (!posts || posts.length === 0) {
+                    const label = filter === 'all' ? 'No Published Posts Yet' : `No Published ${filter.charAt(0).toUpperCase() + filter.slice(1)} Posts`;
+                    renderRecentPostsEmptyState(label);
+                } else {
+                    recentContainer.innerHTML = posts.map(post => createRecentPostRowHtml(post)).join('');
+                    bindAllRecentPostActions();
+                }
+            })
+            .catch(err => console.error('Failed to fetch recent posts:', err));
+    }
+
+    // Dynamic Fetch for Scheduled Posts
+    function fetchScheduledPosts() {
+        const scheduledContainer = document.getElementById('scheduledItemsContainer');
+        const badge = document.getElementById('scheduledBadgeCount');
+        if (!scheduledContainer) return Promise.resolve();
+
+        return fetch('/api/dashboard/posts/scheduled')
+            .then(res => res.json())
+            .then(posts => {
+                if (badge) badge.textContent = (posts ? posts.length : 0) + ' Queued';
+                if (!posts || posts.length === 0) {
+                    scheduledContainer.innerHTML = `
+                        <div class="empty-state-card" style="padding: 36px 20px; text-align: center; color: var(--text-muted); border: 1.5px dashed var(--border-color); border-radius: var(--radius-lg); background: var(--bg-subtle, rgba(241,245,249,0.5));">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-surface); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: var(--shadow-xs); border: 1px solid var(--border-color); color: var(--warning);">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">No Scheduled Content</h4>
+                            <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted); max-width: 280px; margin-inline: auto;">Queue posts ahead of time with automated Email &amp; SMS delivery notifications.</p>
+                            <button type="button" class="btn btn-secondary schedule-post-btn" style="padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin: 0 auto;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                <span>Schedule Post</span>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    scheduledContainer.innerHTML = posts.map(post => createScheduledPostCardHtml(post)).join('');
+                    posts.forEach(p => bindScheduledCardActions(p.id));
+                }
+            })
+            .catch(err => console.error('Failed to fetch scheduled posts:', err));
+    }
+
+    // Bind existing scheduled action buttons on page load
     document.querySelectorAll('.scheduled-item-card').forEach(card => {
         const id = card.id.replace('scheduled-card-', '');
         if (id) bindScheduledCardActions(id);
     });
 
+    // Bind existing recent post row action buttons on page load
+    bindAllRecentPostActions();
+
     // -------------------------------------------------------------------------
     // 6. Recent Posts Platform Filter
     // -------------------------------------------------------------------------
     const filterButtons = document.querySelectorAll('#recentPostsFilter .filter-pill');
-    const postRows = document.querySelectorAll('.post-item-row');
 
     filterButtons.forEach(button => {
         button.addEventListener('click', function () {
             filterButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
 
-            const filterValue = this.getAttribute('data-filter');
-
-            document.querySelectorAll('.post-item-row').forEach(row => {
-                const platform = row.getAttribute('data-platform');
-                if (filterValue === 'all' || platform === filterValue) {
-                    row.classList.remove('hidden');
-                } else {
-                    row.classList.add('hidden');
-                }
-            });
+            const filterValue = this.getAttribute('data-filter') || 'all';
+            fetchRecentPosts(filterValue);
         });
     });
 

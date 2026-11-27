@@ -85,17 +85,11 @@ public class DashboardService {
                 stats.setPeakDay(monthHistory.get(monthHistory.size() - 1).getLabelText());
             }
         } else if (currentFollowersVal > 0) {
-            // Dynamic progression calculated from live connected followers
-            double growthPct = 3.8;
-            long netDiff = Math.max(1L, Math.round(currentFollowersVal * (growthPct / 100.0)));
-            stats.setFollowersGrowth(String.format("+%.1f%%", growthPct));
-            stats.setNetGrowth(String.format("+%s net new", formatCount(netDiff)));
-
-            long organic = Math.round(netDiff * 0.85);
-            long paid = netDiff - organic;
-            stats.setOrganicGrowth(String.format("%s (85%%)", formatCount(organic)));
-            stats.setPaidGrowth(String.format("%s (15%%)", formatCount(paid)));
-            stats.setPeakDay("Thursday (+" + formatCount(Math.max(1L, netDiff / 5)) + ")");
+            stats.setFollowersGrowth("+0.0%");
+            stats.setNetGrowth(formatCount(currentFollowersVal) + " total");
+            stats.setOrganicGrowth(formatCount(currentFollowersVal) + " (100%)");
+            stats.setPaidGrowth("0 (0%)");
+            stats.setPeakDay("N/A");
         } else {
             stats.setFollowersGrowth("+0.0%");
             stats.setNetGrowth("0 net new");
@@ -108,11 +102,13 @@ public class DashboardService {
         Long totalEngagement = postRepository.sumTotalEngagement();
         long engagementVal = totalEngagement != null ? totalEngagement : 0L;
         stats.setTotalEngagement(formatNumber(engagementVal));
-        if (engagementVal > 0) {
-            stats.setEngagementGrowth("+4.2%");
-        } else {
-            stats.setEngagementGrowth("+0.0%");
-        }
+        LocalDateTime now = LocalDateTime.now();
+        Long engThisMonth = postRepository.sumEngagementBetween(now.minusDays(30), now);
+        Long engLastMonth = postRepository.sumEngagementBetween(now.minusDays(60), now.minusDays(30));
+        double engGrowth = (engLastMonth != null && engLastMonth > 0)
+                ? ((double) (engThisMonth - engLastMonth) / engLastMonth) * 100
+                : (engThisMonth != null && engThisMonth > 0 ? 100.0 : 0.0);
+        stats.setEngagementGrowth(String.format("%s%.1f%%", engGrowth >= 0 ? "+" : "", engGrowth));
 
         // Real interaction sums
         Long likes = postRepository.sumTotalLikes();
@@ -125,7 +121,6 @@ public class DashboardService {
         // 4. Published Posts Count & Growth
         long publishedCount = postRepository.countByStatus("PUBLISHED");
         stats.setPublishedPosts(publishedCount);
-        LocalDateTime now = LocalDateTime.now();
         long publishedThisMonth = postRepository.countByStatusAndPublishedAtBetween("PUBLISHED", now.minusDays(30), now);
         long publishedLastMonth = postRepository.countByStatusAndPublishedAtBetween("PUBLISHED", now.minusDays(60), now.minusDays(30));
         double postGrowth = publishedLastMonth > 0

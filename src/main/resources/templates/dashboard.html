@@ -487,8 +487,20 @@
                     </div>
                     <div class="channels-grid">
                         <div th:if="${socialAccounts == null or socialAccounts.isEmpty()}" class="empty-state-card"
-                            style="grid-column: 1 / -1; padding: 20px; text-align: center; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border-color); color: var(--text-muted);">
-                            <p style="margin: 0; font-size: 13px; font-weight: 500;">No connected accounts.</p>
+                            style="grid-column: 1 / -1; padding: 32px 20px; text-align: center; background: var(--bg-surface); border-radius: var(--radius-lg); border: 1.5px dashed var(--border-color); color: var(--text-muted);">
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--bg-subtle); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px; color: var(--text-muted);">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <line x1="19" y1="8" x2="19" y2="14"></line>
+                                    <line x1="22" y1="11" x2="16" y2="11"></line>
+                                </svg>
+                            </div>
+                            <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">No Connected Accounts</h4>
+                            <p style="margin: 0 0 14px 0; font-size: 12px; color: var(--text-muted);">Connect your social media channels to start monitoring audience analytics in real time.</p>
+                            <a th:href="@{/accounts}" class="btn btn-secondary" style="font-size: 12px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; margin: 0 auto;">
+                                <span>+ Connect Account</span>
+                            </a>
                         </div>
                         <th:block th:each="account : ${socialAccounts}">
                             <div class="channel-card" th:classappend="'channel-' + ${account.badgeClass}">
@@ -651,13 +663,19 @@
                         <!-- Posts List Table / Stream -->
                         <div class="recent-posts-list" id="recentPostsContainer">
                             <div th:if="${recentPosts == null or recentPosts.isEmpty()}" class="empty-state-card"
-                                style="padding: 24px 16px; text-align: center; color: var(--text-muted);">
-                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
-                                    stroke-width="1.8" style="margin-bottom: 6px; opacity: 0.6;">
-                                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                                </svg>
-                                <p style="margin: 0; font-size: 13px; font-weight: 500;">No published posts yet.</p>
+                                style="padding: 36px 20px; text-align: center; color: var(--text-muted); border: 1.5px dashed var(--border-color); border-radius: var(--radius-lg); background: var(--bg-subtle, rgba(241,245,249,0.5));">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-surface); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: var(--shadow-xs); border: 1px solid var(--border-color); color: var(--primary);">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </div>
+                                <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">No Published Posts Yet</h4>
+                                <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted); max-width: 280px; margin-inline: auto;">Compose and publish updates across your connected accounts to see performance metrics here.</p>
+                                <button type="button" class="btn btn-primary create-post-btn" style="padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin: 0 auto;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    <span>Create Post</span>
+                                </button>
                             </div>
                             <th:block th:each="post : ${recentPosts}">
                                 <div class="post-item-row draggable-post-item" th:data-platform="${post.platformClass}"
@@ -767,6 +785,15 @@
                                                 </svg>
                                             </button>
                                         </div>
+                                        <div class="stat-cell" title="Delete Post">
+                                            <button type="button" class="btn-icon-subtle action-delete-post"
+                                                th:data-id="${post.id}" title="Delete post">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="6"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </th:block>
@@ -808,13 +835,19 @@
                         <!-- Scheduled Items Queue -->
                         <div class="scheduled-items-list" id="scheduledItemsContainer">
                             <div th:if="${scheduledPosts == null or scheduledPosts.isEmpty()}" class="empty-state-card"
-                                style="padding: 24px 16px; text-align: center; color: var(--text-muted);">
-                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
-                                    stroke-width="1.8" style="margin-bottom: 6px; opacity: 0.6;">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                <p style="margin: 0; font-size: 13px; font-weight: 500;">No scheduled posts.</p>
+                                style="padding: 36px 20px; text-align: center; color: var(--text-muted); border: 1.5px dashed var(--border-color); border-radius: var(--radius-lg); background: var(--bg-subtle, rgba(241,245,249,0.5));">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-surface); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: var(--shadow-xs); border: 1px solid var(--border-color); color: var(--warning);">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                </div>
+                                <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">No Scheduled Content</h4>
+                                <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted); max-width: 280px; margin-inline: auto;">Queue posts ahead of time with automated Email &amp; SMS delivery notifications.</p>
+                                <button type="button" class="btn btn-secondary schedule-post-btn" style="padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin: 0 auto;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    <span>Schedule Post</span>
+                                </button>
                             </div>
                             <th:block th:each="item : ${scheduledPosts}">
                                 <div class="scheduled-item-card draggable-post-item"

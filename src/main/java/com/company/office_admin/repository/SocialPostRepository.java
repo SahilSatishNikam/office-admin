@@ -24,6 +24,9 @@ public interface SocialPostRepository extends JpaRepository<SocialPost, Long> {
     @Query("SELECT COALESCE(SUM(p.likesCount + p.commentsCount + p.sharesCount), 0) FROM SocialPost p WHERE p.status = 'PUBLISHED'")
     Long sumTotalEngagement();
 
+    @Query("SELECT COALESCE(SUM(p.likesCount + p.commentsCount + p.sharesCount), 0) FROM SocialPost p WHERE p.status = 'PUBLISHED' AND p.publishedAt >= :start AND p.publishedAt < :end")
+    Long sumEngagementBetween(@org.springframework.data.repository.query.Param("start") LocalDateTime start, @org.springframework.data.repository.query.Param("end") LocalDateTime end);
+
     @Query("SELECT COALESCE(SUM(p.reachCount), 0) FROM SocialPost p WHERE p.status = 'PUBLISHED'")
     Long sumTotalReach();
 

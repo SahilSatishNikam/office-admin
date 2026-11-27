@@ -730,7 +730,7 @@ input, textarea, select {
 }
 
 .search-input:focus {
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-light);
     outline: none;
@@ -747,7 +747,7 @@ input, textarea, select {
     font-size: 0.72rem;
     font-weight: 600;
     color: var(--text-muted);
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 2px 6px;
@@ -762,7 +762,7 @@ input, textarea, select {
     right: 0;
     max-height: 480px;
     overflow-y: auto;
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -1632,7 +1632,7 @@ input, textarea, select {
 }
 
 .channel-card:hover {
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
     border-color: #cbd5e1;
     box-shadow: var(--shadow-sm);
     transform: translateY(-1px);
@@ -1818,7 +1818,7 @@ input, textarea, select {
 }
 
 .time-tab.active {
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
     color: var(--primary);
     box-shadow: var(--shadow-xs);
 }
@@ -1963,16 +1963,39 @@ input, textarea, select {
     align-items: flex-start;
     gap: 14px;
     padding: 14px 16px;
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
 }
 
 .post-item-row:hover {
     border-color: #cbd5e1;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
     background-color: var(--bg-card-hover);
+    transform: translateY(-1px);
+}
+
+.post-item-row[data-platform="linkedin"] {
+    border-left: 3.5px solid #0a66c2;
+}
+
+.post-item-row[data-platform="instagram"] {
+    border-left: 3.5px solid #e1306c;
+}
+
+.post-item-row[data-platform="twitter"] {
+    border-left: 3.5px solid #0f1419;
+}
+
+.post-item-row[data-platform="youtube"] {
+    border-left: 3.5px solid #ff0000;
+}
+
+:root[data-theme="dark"] .post-item-row[data-platform="twitter"] {
+    border-left-color: #f3f4f6;
 }
 
 .post-item-row.hidden {
@@ -2156,16 +2179,29 @@ input, textarea, select {
 }
 
 .scheduled-item-card {
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
+    border-left: 3.5px solid #f59e0b;
     border-radius: var(--radius-md);
     padding: 14px 16px;
-    transition: all var(--transition-fast);
+    transition: all var(--transition-base);
 }
 
 .scheduled-item-card:hover {
     border-color: #cbd5e1;
-    box-shadow: var(--shadow-sm);
+    border-left-color: #f59e0b;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.action-delete-post:hover {
+    color: var(--danger, #ef4444) !important;
+    background-color: var(--danger-light, rgba(239, 68, 68, 0.12)) !important;
+}
+
+.action-publish-now:hover {
+    color: var(--success, #10b981) !important;
+    background-color: var(--success-light, rgba(16, 185, 129, 0.12)) !important;
 }
 
 .scheduled-top-row {
