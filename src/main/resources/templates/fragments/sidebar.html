@@ -92,9 +92,8 @@
                 <span class="nav-badge queued" th:text="${stats != null ? stats.scheduledPosts : 0}">0</span>
             </a>
 
-            <!-- 5. Content Management (Creator + Admin) -->
-            <a th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN' or userRoleAuthority == 'ROLE_CREATOR'}"
-               th:href="@{/content}" 
+            <!-- 5. Content Management (All Roles) -->
+            <a th:href="@{/content}" 
                th:classappend="${activeMenu == 'content'} ? 'active' : ''" 
                class="nav-item">
                 <span class="nav-icon-wrapper">

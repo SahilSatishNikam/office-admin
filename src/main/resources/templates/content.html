@@ -245,7 +245,7 @@
                                             </button>
                                         </form>
 
-                                        <form th:if="${post.status != 'PUBLISHED' and post.status != 'IN_REVIEW'}"
+                                        <form th:if="${post.status != 'PUBLISHED' and post.status != 'IN_REVIEW' and (userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN')}"
                                             th:action="@{'/content/' + ${post.id} + '/publish'}" method="post"
                                             style="display:inline;">
                                             <input type="hidden" th:name="${_csrf.parameterName}"
@@ -256,7 +256,8 @@
                                             </button>
                                         </form>
 
-                                        <form th:action="@{'/content/' + ${post.id} + '/delete'}" method="post"
+                                        <form th:if="${userRoleAuthority == null or userRoleAuthority == 'ROLE_ADMIN'}"
+                                            th:action="@{'/content/' + ${post.id} + '/delete'}" method="post"
                                             style="display:inline;" onsubmit="return confirm('Delete this post?');">
                                             <input type="hidden" th:name="${_csrf.parameterName}"
                                                 th:value="${_csrf.token}" />
@@ -270,6 +271,11 @@
                                                 </svg>
                                             </button>
                                         </form>
+
+                                        <span th:if="${userRoleAuthority != null and userRoleAuthority != 'ROLE_ADMIN'}"
+                                              class="badge" style="font-size: 11px; font-weight: 600; padding: 4px 8px; background: rgba(100, 116, 139, 0.1); color: var(--text-muted); border-radius: 6px;">
+                                            Draft / Review
+                                        </span>
                                     </div>
                                 </div>
                             </div>

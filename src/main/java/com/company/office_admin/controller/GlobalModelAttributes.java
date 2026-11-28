@@ -69,6 +69,9 @@ public class GlobalModelAttributes {
         model.addAttribute("userName", userName);
         model.addAttribute("userRole", userRole);
         model.addAttribute("userRoleAuthority", userRoleAuthority);
+        model.addAttribute("isAdmin", "ROLE_ADMIN".equals(userRoleAuthority));
+        model.addAttribute("isDesigner", "ROLE_DESIGNER".equals(userRoleAuthority));
+        model.addAttribute("isCreator", "ROLE_CREATOR".equals(userRoleAuthority));
         model.addAttribute("userEmail", userEmail);
         model.addAttribute("userInitials", userInitials);
 

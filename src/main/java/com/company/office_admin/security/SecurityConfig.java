@@ -2,6 +2,7 @@ package com.company.office_admin.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,14 +22,24 @@ public class SecurityConfig {
             .httpBasic(org.springframework.security.config.Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/login").permitAll()
-                // Admin-only sections
+                
+                // 1. Master Admin Only Web Sections
                 .requestMatchers("/accounts/**", "/channels/**", "/oauth2/**", "/analytics/**", "/reports/**", "/settings/**").hasRole("ADMIN")
-                // Designer access
+                
+                // 2. Sensitive Content & System Actions: Publishing, Approving, and Deleting are strictly Admin Only
+                .requestMatchers(HttpMethod.POST, "/content/*/publish", "/content/*/approve", "/content/*/delete").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/dashboard/posts/*/publish", "/api/dashboard/posts/*/approve").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/dashboard/posts/*", "/api/folders/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/folders/*").hasRole("ADMIN")
+                
+                // 3. Designer Access (Designer Vault)
                 .requestMatchers("/api/folders/designer/**").hasAnyRole("ADMIN", "DESIGNER")
-                // Creator access
-                .requestMatchers("/api/folders/creator/**").hasAnyRole("ADMIN", "CREATOR")
-                // Common dashboard & API endpoints
-                .requestMatchers("/", "/dashboard", "/api/**").authenticated()
+                
+                // 4. Creator Access (Creator Studio & AI Copilot)
+                .requestMatchers("/api/folders/creator/**", "/api/ai/**").hasAnyRole("ADMIN", "CREATOR")
+                
+                // 5. Common dashboard, calendar, content browsing, and general API endpoints
+                .requestMatchers("/", "/dashboard", "/content", "/calendar", "/api/**").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(login -> login
@@ -42,6 +53,9 @@ public class SecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
                 .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/dashboard?denied=true")
             );
 
         return http.build();

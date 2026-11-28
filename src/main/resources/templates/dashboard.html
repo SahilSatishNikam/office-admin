@@ -68,6 +68,11 @@
                     <span th:text="${errorMessage}">Authentication failed.</span>
                 </div>
 
+                <div th:if="${param.denied}" class="alert-banner-danger" style="margin-bottom: 24px; padding: 14px 20px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #b91c1c; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span>Access Restricted: You do not have permission to view that section. Complete system administration is reserved for Master Administrators.</span>
+                </div>
+
                 <!-- Welcome Banner / Header -->
                 <section class="dashboard-banner">
                     <div class="banner-text-group">
